@@ -1050,6 +1050,44 @@ button:focus-visible, .chip:focus-visible, .nav-item:focus-visible, .listing-car
   .consent-bar{ left:auto; right:var(--s-6); bottom:var(--s-6); max-width:520px; }
 }
 
+/* --- FAQ accordion ------------------------------------------------ */
+.faq-list .faq-item{ border-bottom:1px solid var(--border); }
+.faq-list .faq-item:last-child{ border-bottom:none; }
+.faq-item summary{
+  list-style:none;
+  cursor:pointer;
+  padding:var(--s-4);
+  display:flex; align-items:center; justify-content:space-between;
+  font-weight:500;
+}
+.faq-item summary::-webkit-details-marker{ display:none; }
+.faq-item[open] summary i{ transform: rotate(180deg); }
+.faq-item summary i{ transition:transform .2s; color:var(--text-muted); }
+.faq-body{
+  padding:0 var(--s-4) var(--s-4);
+  color:var(--text-dim);
+  font-size:var(--fs-sm);
+  line-height:1.6;
+}
+
+/* --- Intro modal -------------------------------------------------- */
+.intro-backdrop{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.6); backdrop-filter:blur(4px);
+  z-index:90;
+  display:flex; align-items:center; justify-content:center;
+  padding:var(--s-4);
+  animation: fade-in .25s ease;
+}
+.intro-modal{
+  width:100%; max-width:480px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:var(--s-5);
+  box-shadow:var(--shadow-lg);
+}
+
 /* --- Print stylesheet (raporlar için) ----------------------------- */
 @media print{
   :root[data-theme="dark"]{ --bg:#fff; --surface:#fff; --surface-2:#f5f5f5; --surface-3:#eee; --text:#000; --text-dim:#444; --text-muted:#777; --border:#ddd; }

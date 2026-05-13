@@ -119,7 +119,7 @@ const Render = {
   },
 
   view(){
-    const validViews = NAV[State.role].map(n=>n.id).concat(['listing','thread','profile','compare','notifications']);
+    const validViews = NAV[State.role].map(n=>n.id).concat(['listing','thread','profile','compare','notifications','help']);
     if (!validViews.includes(State.view)) {
       // Show 404 instead of silent redirect when hash invalid
       Render.shell();
@@ -156,6 +156,7 @@ const Render = {
       case 'profile':       main.innerHTML = views.profile();     break;
       case 'compare':       main.innerHTML = views.compare();     break;
       case 'notifications': main.innerHTML = views.notifications(); break;
+      case 'help':          main.innerHTML = views.help();          break;
     }
     // mobile FAB
     renderFab();
@@ -479,6 +480,19 @@ views.listing = (id) => {
       <div class="spec-item"><span class="spec-label">Yayın</span><span class="spec-value">${esc(l.created)}</span></div>
     </div>
 
+    <h3 class="mt-4 mb-3">12 Ay Fiyat Trendi</h3>
+    <div class="card">
+      <div class="row between mb-2">
+        <small class="muted">Yıllık değişim</small>
+        <span class="ai-trend"><i class="ph ph-trend-up"></i> +%${l.ai_trend}</span>
+      </div>
+      ${sparkSvg(priceHistory(l), 'var(--primary)')}
+      <div class="row between mt-2">
+        <small class="muted">12 ay önce: ${fmtTL(Math.round(l.fiyat/(1+l.ai_trend/100)))}</small>
+        <small class="muted">Bugün: ${fmtTL(l.fiyat)}</small>
+      </div>
+    </div>
+
     <h3 class="mt-4 mb-3">Konum</h3>
     <div class="map-box">
       <i class="ph ph-map-pin-line"></i>
@@ -510,6 +524,16 @@ views.listing = (id) => {
         </div>
         ${State.role==='buyer' ? `<button class="btn sm" data-action="open-thread" data-listing="${l.id}" data-seller="${l.seller_id}"><i class="ph ph-chat-circle"></i></button>` : ''}
       </div>
+    </div>
+
+    <h3 class="mt-4 mb-3">Sıkça Sorulanlar</h3>
+    <div class="card flush faq-list">
+      ${FAQ_ITEMS.map((it,i) => `
+        <details class="faq-item">
+          <summary><span>${esc(it.q)}</span><i class="ph ph-caret-down"></i></summary>
+          <div class="faq-body">${esc(it.a)}</div>
+        </details>
+      `).join('')}
     </div>
 
     ${otherFromSeller.length ? `
@@ -659,6 +683,47 @@ views.compare = () => {
         <div class="compare-cell label">${label}</div>
         ${items.map(l => `<div class="compare-cell">${val(l)}</div>`).join('')}
       `).join('')}
+    </div>
+  `;
+};
+
+/* ----- Help ------------------------------------------------------------ */
+views.help = () => {
+  const sections = [
+    { icon:'ph-compass',     title:'Alıcılar için',
+      items:['Keşfet ekranında AI doğal dil aramasıyla "İstanbul konut 5M altı temiz tapu" gibi cümlelerle ara.',
+             'İlan detayında "Neden bu fiyat?" ile AI değerlemenin gerekçesini gör.',
+             'Favorilerden 2-3 ilan seçip karşılaştırma tablosuna geç.'] },
+    { icon:'ph-stack',       title:'Satıcılar için',
+      items:['Yeni İlan sihirbazında AI fiyat önerisini 1 tıkla uygula.',
+             '"AI ile yaz" butonu açıklamayı otomatik üretir.',
+             'Performans sekmesinde ilan başı analitik görebilirsin.'] },
+    { icon:'ph-shield-check',title:'Yöneticiler için',
+      items:['Onay kuyruğunda AI risk skoru ilanı önceliklendirir.',
+             'Kullanıcılar bölümünden yeni kullanıcı oluştur veya doğrula.',
+             'Raporlarda CSV indir ve sayfayı yazdır.'] },
+  ];
+  return `
+    <div class="page-header">
+      <h1>Yardım Merkezi</h1>
+      <div class="subtitle">LandX kullanım rehberi</div>
+    </div>
+    <div class="col gap-3">
+      ${sections.map(s => `
+        <div class="card">
+          <div class="row gap-3 mb-2">
+            <div class="kpi-icon"><i class="ph ${esc(s.icon)}"></i></div>
+            <h3 style="margin:0;">${esc(s.title)}</h3>
+          </div>
+          <ul style="margin:0; padding-left:var(--s-5); color:var(--text-dim); font-size:var(--fs-sm); line-height:1.7;">
+            ${s.items.map(t => `<li>${esc(t)}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card mt-3">
+      <h3 class="mb-2">İletişim</h3>
+      <div class="muted">Sorularınız için: <strong>destek@landx.demo</strong></div>
     </div>
   `;
 };
@@ -1557,6 +1622,7 @@ views.profile = () => {
         <button class="btn ghost" data-action="settings-mock"><i class="ph ph-bell"></i> Bildirim ayarları</button>
         <button class="btn ghost" data-action="settings-mock"><i class="ph ph-lock-key"></i> Güvenlik</button>
         <button class="btn ghost" data-action="settings-mock"><i class="ph ph-scales"></i> KVKK / Çerezler</button>
+        <button class="btn ghost" data-action="open-help"><i class="ph ph-question"></i> Yardım Merkezi</button>
         <button class="btn ghost" data-action="settings-mock" style="color:var(--danger);"><i class="ph ph-sign-out"></i> Çıkış Yap</button>
       </div>
     </div>
@@ -1858,8 +1924,44 @@ document.body.addEventListener('click', e => {
       State.approvalFilter = target.dataset.val;
       Render.view();
       break;
-    case 'edit-listing':
-      Toast.show('İlan düzenleme yakında (demo)', '', 'ph-info');
+    case 'edit-listing': {
+      const l = listingById(target.dataset.id);
+      if (!l) break;
+      Sheet.open(`
+        <h3>İlanı Düzenle</h3>
+        <p class="muted">${esc(l.title)}</p>
+        <div class="field"><label>Başlık</label><div class="input"><input id="el-title" value="${esc(l.title)}"></div></div>
+        <div class="field-row cols-2">
+          <div class="field"><label>Fiyat (₺)</label><div class="input"><i class="ph ph-currency-circle-dollar"></i><input id="el-fiyat" type="number" min="0" value="${l.fiyat}"></div></div>
+          <div class="field"><label>Alan (m²)</label><div class="input"><i class="ph ph-ruler"></i><input id="el-alan" type="number" min="0" value="${l.alan}"></div></div>
+        </div>
+        <div class="field"><label>Açıklama</label><div class="input"><textarea id="el-desc" rows="4">${esc(l.desc)}</textarea></div></div>
+        <div class="row gap-2 mt-3">
+          <button class="btn" data-action="sheet-close">İptal</button>
+          <button class="btn primary" style="flex:1;" data-action="save-listing-edit" data-id="${l.id}"><i class="ph ph-check"></i> Kaydet</button>
+        </div>
+      `);
+      break;
+    }
+    case 'save-listing-edit': {
+      const l = listingById(target.dataset.id);
+      if (!l) break;
+      l.title = $('#el-title').value.trim() || l.title;
+      l.fiyat = parseInt($('#el-fiyat').value||l.fiyat);
+      l.alan  = parseInt($('#el-alan').value||l.alan);
+      l.fiyat_m2 = l.alan ? Math.round(l.fiyat / l.alan) : 0;
+      l.desc  = $('#el-desc').value.trim() || l.desc;
+      Sheet.close();
+      Render.view();
+      Toast.show('İlan güncellendi', 'success', 'ph-check');
+      break;
+    }
+    case 'open-help':
+      Router.go('help');
+      break;
+    case 'dismiss-intro':
+      State.introShown = true;
+      $('#introModal')?.remove();
       break;
     case 'delete-listing': {
       const id = target.dataset.id;
@@ -2338,6 +2440,32 @@ function showConsentBanner(){
   document.body.appendChild(bar);
 }
 
+function showIntro(){
+  if (State.introShown) return;
+  const wrap = document.createElement('div');
+  wrap.id = 'introModal';
+  wrap.className = 'intro-backdrop';
+  wrap.innerHTML = `
+    <div class="intro-modal">
+      <div class="row between mb-3">
+        <div class="brand">
+          <i class="ph-fill ph-map-trifold"></i>
+          <span>LandX'e Hoş Geldin</span>
+        </div>
+        <button class="icon-btn" data-action="dismiss-intro" style="background:transparent;border:none;" aria-label="Kapat"><i class="ph ph-x"></i></button>
+      </div>
+      <p class="muted">3 farklı rol var: <strong>Alıcı</strong> arsa keşfeder, <strong>Satıcı</strong> ilan açar, <strong>Yönetici</strong> platformu yönetir. Sağ üstteki rol seçiciyle istediğin gibi dolaş.</p>
+      <div class="col gap-2 mt-3" style="font-size:var(--fs-sm);">
+        <div class="row gap-2"><i class="ph ph-sparkle" style="color:var(--primary);"></i><span><strong>AI arama:</strong> "İstanbul konut 5M altı temiz tapu" yazarak dene.</span></div>
+        <div class="row gap-2"><i class="ph ph-scales" style="color:var(--primary);"></i><span><strong>Karşılaştırma:</strong> favorilerden 2-3 ilan seç, yan yana incele.</span></div>
+        <div class="row gap-2"><i class="ph ph-magic-wand" style="color:var(--primary);"></i><span><strong>Yeni İlan Sihirbazı:</strong> AI fiyat öneri ve açıklama yazıcı 1 tık uzakta.</span></div>
+      </div>
+      <button class="btn primary block mt-3" data-action="dismiss-intro"><i class="ph ph-rocket-launch"></i> Başlayalım</button>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+}
+
 /* Initial route */
 (function init(){
   const r = Router.fromHash();
@@ -2345,4 +2473,5 @@ function showConsentBanner(){
   else State.view = DEFAULT_VIEW[State.role];
   Render.view();
   showConsentBanner();
+  showIntro();
 })();

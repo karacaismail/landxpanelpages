@@ -379,7 +379,30 @@ const State = {
   recent: [],                  // listing id'leri (son görüntülenen, max 8)
   consent: false,              // KVKK banner kabul
   wizardPhotos: [],            // [{label, color}] thumbs
+  introShown: false,           // hoş geldin tanıtımı
 };
+
+// Sahte 12 ay fiyat trendi üretici
+function priceHistory(l){
+  const months = 12;
+  const start = Math.round(l.fiyat / (1 + l.ai_trend/100));
+  const series = [];
+  for (let i=0; i<months; i++){
+    const t = i / (months-1);
+    const noise = (Math.sin(i*1.3) * 0.015);
+    const v = start + (l.fiyat - start) * t + start * noise;
+    series.push(Math.round(v));
+  }
+  return series;
+}
+
+// SSS — listing detail için template
+const FAQ_ITEMS = [
+  { q:'Tapu süreci ne kadar sürer?', a:'Müstakil tapulu arsalarda devir genellikle 1 hafta içinde tamamlanır. Hisseli tapular için ortak satıcı muvafakati gerekir.' },
+  { q:'TKGM kaydı nasıl sorgulanır?',  a:'Tapu ve Kadastro Genel Müdürlüğü Web-Tapu üzerinden TC kimlikle giriş yaparak parsel bilgisi sorgulanabilir.' },
+  { q:'Emsal değeri nedir?',           a:'Emsal (E), parselin yapılaşma kapasitesini belirleyen katsayıdır. E:2.00 = parsel alanının 2 katı toplam inşaat hakkı.' },
+  { q:'Komisyon ücreti var mı?',       a:'LandX işlem başına %1 hizmet bedeli alır (max 50.000 ₺). Lisanslı emlakçı komisyonu satıcı/alıcı arasında belirlenir.' },
+];
 
 // Required wizard fields per step (for validation)
 const WIZARD_REQUIRED = [
