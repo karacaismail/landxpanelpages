@@ -267,6 +267,42 @@ const AI_REPLY_TEMPLATES = {
   ],
 };
 
+// Aktivite log (admin için)
+const ACTIVITY = [
+  { time:'10:42', icon:'ph-check-circle', kind:'success', text:'Yeni ilan onaylandı: Karşıyaka Ticari Arsa' },
+  { time:'10:18', icon:'ph-user-plus',    kind:'',        text:'Yeni satıcı kaydı: Burak Şahin'  },
+  { time:'09:55', icon:'ph-warning',      kind:'danger',  text:'Yüksek risk: Antalya Konyaaltı (AI skor 71)' },
+  { time:'09:32', icon:'ph-handshake',    kind:'success', text:'Teklif kabul edildi: 18.5M ₺ — Bodrum' },
+  { time:'08:14', icon:'ph-chart-bar',    kind:'',        text:'Günlük ziyaret %18 arttı' },
+  { time:'07:58', icon:'ph-pencil',       kind:'',        text:'İlan güncellendi: Sapanca Göl Kenarı' },
+];
+
+// AI insights — rol bazlı öneri kartları
+function aiInsights(role){
+  if (role === 'buyer'){
+    return [
+      { icon:'ph-trend-up', text:'Bodrum bölgesinde son 30 günde fiyatlar %22 arttı. Favorilerindeki ilana yakın takip öneririz.' },
+      { icon:'ph-target',   text:'Aradığın profile uyan 3 yeni ilan bulundu — Kadıköy, Çankaya, Sapanca.' },
+      { icon:'ph-sparkle',  text:'Karşılaştırma için önerimiz: ortalama m² fiyatı en düşük 2 ilanını seç.' },
+    ];
+  }
+  if (role === 'seller'){
+    return [
+      { icon:'ph-lightbulb', text:'İlanlarının görüntülenmesi son 7 günde %12 arttı. Yükselt özelliğini kullanabilirsin.' },
+      { icon:'ph-target',    text:'Karşıyaka ilanın AI bandının %3 üzerinde — pazarlık marjı sınırlı, ana cadde vurgusu iyi olur.' },
+      { icon:'ph-currency-circle-dollar', text:'Müsait taslak: 1 ilan henüz yayınlanmamış. Tamamlamak ister misin?' },
+    ];
+  }
+  if (role === 'admin'){
+    return [
+      { icon:'ph-warning',     text:'2 ilan yüksek risk skoruyla kuyrukta — öncelikli incele.' },
+      { icon:'ph-trend-up',    text:'Bu hafta işlem hacmi 22.6M ₺ — geçen haftaya göre +%18.' },
+      { icon:'ph-users-three', text:'3 satıcı doğrulama bekliyor. Bekleme süresi ortalama 14 saat.' },
+    ];
+  }
+  return [];
+}
+
 // AI doğal dil arama → filtre eşleştirici (sahte NLP)
 function aiParseQuery(q){
   const out = { text:q };
@@ -337,6 +373,8 @@ const State = {
   compare: [],                 // listing id'leri (max 3)
   tipsDismissed: {},           // {dashboard:true, favorites:true, ...}
   globalSearch: '',
+  msgSearch: '',               // thread içi arama
+  selectedPerfListing: '',     // performans: ilan başı seçili
 };
 
 // Required wizard fields per step (for validation)

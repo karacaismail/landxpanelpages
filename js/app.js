@@ -135,7 +135,7 @@ const Render = {
 
     switch(State.view){
       case 'discover':    main.innerHTML = views.discover();    break;
-      case 'listing':     main.innerHTML = views.listing(State.params.id); break;
+      case 'listing':     main.innerHTML = views.listing(State.params.id); afterListing(); break;
       case 'favorites':   main.innerHTML = views.favorites();   break;
       case 'messages':    main.innerHTML = views.messages();    break;
       case 'thread':      main.innerHTML = views.thread(State.params.id); afterChat(); break;
@@ -248,6 +248,28 @@ function listingCard(l, opts={}){
    ========================================================================= */
 const views = {};
 
+/* ----- AI insights card (her rol için) --------------------------------- */
+function aiInsightsCard(){
+  const items = aiInsights(State.role);
+  if (!items.length || State.tipsDismissed['ai-'+State.role]) return '';
+  return `
+    <div class="ai-card mb-3">
+      <div class="row between mb-2">
+        <div class="ai-label"><i class="ph ph-sparkle"></i> Senin için AI önerisi</div>
+        <button class="icon-btn" data-action="dismiss-tip" data-key="ai-${State.role}" style="background:transparent;border:none;" aria-label="Kapat"><i class="ph ph-x"></i></button>
+      </div>
+      <div class="col gap-2">
+        ${items.map(i => `
+          <div class="row gap-2" style="font-size:var(--fs-sm); color:var(--text-dim);">
+            <i class="ph ${esc(i.icon)}" style="color:var(--primary);"></i>
+            <span style="flex:1;">${esc(i.text)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 /* ----- BUYER: Discover -------------------------------------------------- */
 views.discover = () => {
   const f = State.filters;
@@ -272,6 +294,8 @@ views.discover = () => {
       <h1>Keşfet</h1>
       <div class="subtitle">${result.length} aktif arsa ilanı${activeCount?` · ${activeCount} filtre`:''}</div>
     </div>
+
+    ${aiInsightsCard()}
 
     <div class="input mb-3">
       <i class="ph ph-magnifying-glass"></i>
@@ -630,11 +654,27 @@ views.notifications = () => {
 views.messages = () => {
   const role = State.role;
   const meId = State.userId;
-  const myThreads = THREADS.filter(t => role==='buyer' ? t.buyer_id===meId : t.seller_id===meId);
+  let myThreads = THREADS.filter(t => role==='buyer' ? t.buyer_id===meId : t.seller_id===meId);
+  const q = (State.msgSearch||'').toLowerCase();
+  if (q){
+    myThreads = myThreads.filter(t => {
+      const other = USERS.find(u => u.id === (role==='buyer' ? t.seller_id : t.buyer_id));
+      const l = listingById(t.listing_id);
+      const lastMsg = MESSAGES.filter(m=>m.thread===t.id).map(m=>m.text).join(' ');
+      const hay = `${other?.name||''} ${l?.title||''} ${lastMsg}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }
   return `
     <div class="page-header">
       <h1>Mesajlar</h1>
       <div class="subtitle">${myThreads.length} sohbet · ${myThreads.reduce((a,t)=>a+(role==='buyer'?t.unread_for_buyer:t.unread_for_seller),0)} okunmamış</div>
+    </div>
+
+    <div class="input mb-3">
+      <i class="ph ph-magnifying-glass"></i>
+      <input id="msgSearch" type="text" placeholder="Sohbetlerde ara: isim, ilan, mesaj..." value="${esc(State.msgSearch)}" aria-label="Mesaj ara">
+      ${State.msgSearch ? '<button class="icon-btn" data-action="clear-msg-search" style="background:transparent;border:none;"><i class="ph ph-x"></i></button>' : ''}
     </div>
     ${myThreads.length === 0 ? `
       <div class="empty"><i class="ph ph-chats"></i><h3>Mesajınız yok</h3></div>
@@ -727,6 +767,28 @@ function afterChat(){
   }
 }
 
+function afterListing(){
+  const hero = $('.detail-hero');
+  if (!hero) return;
+  let startX = 0, dx = 0, swiping = false;
+  hero.addEventListener('touchstart', e => { startX = e.touches[0].clientX; dx = 0; swiping = true; }, {passive:true});
+  hero.addEventListener('touchmove',  e => { if (swiping) dx = e.touches[0].clientX - startX; }, {passive:true});
+  hero.addEventListener('touchend',   () => {
+    if (!swiping) return;
+    swiping = false;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) State.photoIdx = Math.min(3, (State.photoIdx||0) + 1);
+    else        State.photoIdx = Math.max(0, (State.photoIdx||0) - 1);
+    Render.view();
+  });
+  // arrow keys
+  document.onkeydown = e => {
+    if (State.view !== 'listing') { document.onkeydown = null; return; }
+    if (e.key === 'ArrowRight'){ State.photoIdx = Math.min(3,(State.photoIdx||0)+1); Render.view(); }
+    if (e.key === 'ArrowLeft') { State.photoIdx = Math.max(0,(State.photoIdx||0)-1); Render.view(); }
+  };
+}
+
 /* ----- SELLER: My Listings --------------------------------------------- */
 views.myListings = () => {
   const all = LISTINGS.filter(l => l.seller_id === State.userId);
@@ -748,6 +810,8 @@ views.myListings = () => {
       </div>
       <button class="btn primary hide-mobile" data-action="nav" data-view="wizard"><i class="ph ph-plus"></i> Yeni İlan</button>
     </div>
+
+    ${aiInsightsCard()}
 
     <div class="tabs">
       ${Object.entries(filterMap).map(([k,label])=>`
@@ -1083,6 +1147,16 @@ views.performance = () => {
   const totalInq   = slice(p.inquiries).reduce((a,b)=>a+b,0);
   const conv = totalViews ? ((totalInq/totalViews)*100).toFixed(1) : '0';
 
+  const myActive = LISTINGS.filter(l => l.seller_id===State.userId && l.status==='active');
+  const selId = State.selectedPerfListing || (myActive[0]?.id || '');
+  const sel = myActive.find(l => l.id === selId);
+  // Sahte per-listing serisi (genel datadan oranlanmış)
+  const perListing = sel ? {
+    views:    p.views.map(v => Math.max(0, Math.round(v * (sel.views   / Math.max(1, myActive.reduce((a,b)=>a+b.views,0)))))),
+    favs:     p.favs.map(v  => Math.max(0, Math.round(v * (sel.favs    / Math.max(1, myActive.reduce((a,b)=>a+b.favs,0)))))),
+    inquiries:p.inquiries.map(v => Math.max(0, Math.round(v * (sel.inquiries / Math.max(1, myActive.reduce((a,b)=>a+b.inquiries,0))))))
+  } : null;
+
   return `
     <div class="row between mb-3">
       <div class="page-header" style="margin:0;">
@@ -1093,6 +1167,8 @@ views.performance = () => {
         ${[7,14,30].map(n=>`<button class="chip ${r===n?'active':''}" data-action="set-perf-range" data-val="${n}">${n}g</button>`).join('')}
       </div>
     </div>
+
+    ${aiInsightsCard()}
 
     <div class="kpi-grid mb-4">
       ${kpiCard('Görüntülenme', fmt(totalViews), 'ph-eye', '+12%')}
@@ -1114,9 +1190,36 @@ views.performance = () => {
       ${sparkSvg(slice(p.inquiries), 'var(--warning)')}
     </div>
 
+    ${myActive.length ? `
+      <h3 class="mt-4 mb-3">İlan Başı Analiz</h3>
+      <div class="card mb-3">
+        <div class="field" style="margin:0;">
+          <label>İlan seç</label>
+          <div class="input">
+            <i class="ph ph-stack"></i>
+            <select data-action="set-perf-listing">
+              ${myActive.map(l => `<option value="${l.id}" ${selId===l.id?'selected':''}>${esc(l.title)} (${esc(l.il)})</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        ${perListing ? `
+          <div class="kpi-grid mt-3">
+            ${kpiCard('Görüntülenme', fmt(sel.views), 'ph-eye', '')}
+            ${kpiCard('Favori', fmt(sel.favs), 'ph-heart', '')}
+            ${kpiCard('Mesaj', fmt(sel.inquiries), 'ph-chat-circle', '')}
+            ${kpiCard('m² fiyat', fmt(sel.fiyat_m2)+' ₺', 'ph-currency-circle-dollar', '')}
+          </div>
+          <div class="mt-3">
+            <small class="muted">Günlük görüntülenme</small>
+            ${sparkSvg(slice(perListing.views), 'var(--primary)')}
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
+
     <h3 class="mt-4 mb-3">En İyi İlanlar</h3>
     <div class="grid listings">
-      ${LISTINGS.filter(l => l.seller_id===State.userId && l.status==='active').sort((a,b)=>b.views-a.views).slice(0,3).map(l => listingCard(l, {seller:true})).join('')}
+      ${myActive.sort((a,b)=>b.views-a.views).slice(0,3).map(l => listingCard(l, {seller:true})).join('')}
     </div>
   `;
 };
@@ -1182,6 +1285,8 @@ views.approval = () => {
       <h1>Onay Kuyruğu</h1>
       <div class="subtitle">${all.length} ilan beklemede · ${counts.high} yüksek risk</div>
     </div>
+
+    ${aiInsightsCard()}
 
     <div class="tabs">
       <button class="tab ${f==='all'?'active':''}" data-action="approval-filter" data-val="all">Tümü <span class="badge">${counts.all}</span></button>
@@ -1344,6 +1449,24 @@ views.reports = () => {
     <h3 class="mt-4 mb-3">En Çok İlgi Gören İlanlar</h3>
     <div class="grid listings">
       ${LISTINGS.filter(l=>l.status==='active').sort((a,b)=>b.views-a.views).slice(0,4).map(l=>listingCard(l)).join('')}
+    </div>
+
+    <h3 class="mt-4 mb-3">Aktivite Zaman Çizelgesi</h3>
+    <div class="card flush">
+      ${ACTIVITY.map(a => `
+        <div class="row gap-3" style="padding:var(--s-3) var(--s-4); border-bottom:1px solid var(--border);">
+          <div class="kpi-icon" style="background:var(--${a.kind||'primary'}-fade); color:var(--${a.kind||'primary'});">
+            <i class="ph ${esc(a.icon)}"></i>
+          </div>
+          <div style="flex:1;">${esc(a.text)}</div>
+          <div class="muted" style="font-size:var(--fs-xs);">${esc(a.time)}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="row gap-2 mt-4">
+      <button class="btn" data-action="export-csv"><i class="ph ph-download-simple"></i> İlanları CSV İndir</button>
+      <button class="btn ghost" data-action="print-report"><i class="ph ph-printer"></i> Yazdır</button>
     </div>
   `;
 };
@@ -1800,8 +1923,53 @@ document.body.addEventListener('click', e => {
       Sheet.close();
       Toast.show('Şikayetiniz alındı', 'success', 'ph-flag');
       break;
-    case 'edit-profile':
-      Toast.show('Profil düzenleme yakında (demo)', '', 'ph-info');
+    case 'edit-profile': {
+      const u = currentUser();
+      Sheet.open(`
+        <h3>Profili Düzenle</h3>
+        <div class="field"><label>Ad Soyad</label><div class="input"><i class="ph ph-user"></i><input id="pf-name" value="${esc(u.name)}"></div></div>
+        <div class="field"><label>E-posta</label><div class="input"><i class="ph ph-envelope"></i><input id="pf-email" value="${esc(u.email)}"></div></div>
+        <div class="field"><label>Telefon</label><div class="input"><i class="ph ph-phone"></i><input id="pf-phone" value="${esc(u.phone||'')}"></div></div>
+        <div class="row gap-2 mt-3">
+          <button class="btn" data-action="sheet-close">İptal</button>
+          <button class="btn primary" style="flex:1;" data-action="save-profile"><i class="ph ph-check"></i> Kaydet</button>
+        </div>
+      `);
+      break;
+    }
+    case 'save-profile': {
+      const u = currentUser();
+      u.name  = $('#pf-name').value.trim() || u.name;
+      u.email = $('#pf-email').value.trim() || u.email;
+      u.phone = $('#pf-phone').value.trim();
+      u.avatar = u.name.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase();
+      Sheet.close();
+      Render.view();
+      Toast.show('Profil güncellendi', 'success', 'ph-check');
+      break;
+    }
+    case 'set-perf-listing':
+      // change listener'da set ediliyor
+      break;
+    case 'clear-msg-search':
+      State.msgSearch = '';
+      Render.view();
+      break;
+    case 'export-csv': {
+      const rows = [['ID','Başlık','İl','İlçe','Alan(m²)','Fiyat(₺)','m²₺','İmar','Status']];
+      LISTINGS.forEach(l => rows.push([l.id, l.title, l.il, l.ilce, l.alan, l.fiyat, l.fiyat_m2, l.imar, l.status]));
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob(["﻿"+csv], { type:'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'landx_ilanlar.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      Toast.show('CSV indirildi', 'success', 'ph-download-simple');
+      break;
+    }
+    case 'print-report':
+      window.print();
       break;
     case 'settings-mock':
       Toast.show('Demo modu — bu ekran henüz aktif değil', '', 'ph-info');
@@ -1857,6 +2025,17 @@ document.body.addEventListener('input', e => {
   if (e.target.dataset.wiz){
     const key = e.target.dataset.wiz;
     State.wizard.data[key] = e.target.value;
+    // wizard step 2'de title boşken auto-suggest
+    if (State.wizard.step === 2 && ['il','ilce','imar'].includes(key)){
+      // not used here
+    }
+  }
+  if (e.target.id === 'msgSearch'){
+    State.msgSearch = e.target.value;
+    const caret = e.target.selectionStart;
+    Render.view();
+    const re = $('#msgSearch');
+    if (re){ re.focus(); re.setSelectionRange(caret, caret); }
   }
 });
 document.body.addEventListener('change', e => {
@@ -1866,6 +2045,10 @@ document.body.addEventListener('change', e => {
   }
   if (e.target.matches('[data-action="set-sort"]')){
     State.filters.sort = e.target.value;
+    Render.view();
+  }
+  if (e.target.matches('[data-action="set-perf-listing"]')){
+    State.selectedPerfListing = e.target.value;
     Render.view();
   }
 });
