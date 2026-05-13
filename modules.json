@@ -1,0 +1,399 @@
+{
+  "layers": {
+    "L0": {
+      "name": "Kernel",
+      "tr": "Çekirdek",
+      "color": "#6366f1"
+    },
+    "L1": {
+      "name": "Identity",
+      "tr": "Kimlik ve Kiracılık",
+      "color": "#0ea5e9"
+    },
+    "L2": {
+      "name": "Agent Runtime",
+      "tr": "Agent Çalışma Zamanı",
+      "color": "#8b5cf6"
+    },
+    "L3": {
+      "name": "Application",
+      "tr": "Uygulama Yüzeyi",
+      "color": "#10b981"
+    },
+    "L4": {
+      "name": "Data & Compliance",
+      "tr": "Veri ve Uyumluluk",
+      "color": "#f59e0b"
+    },
+    "L5": {
+      "name": "Operations",
+      "tr": "Operasyon ve Marketplace",
+      "color": "#ef4444"
+    }
+  },
+  "modules": [
+    {
+      "id": "K01",
+      "layer": "L0",
+      "name": "Plugin Lifecycle Manager",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Kernel Squad",
+      "capability_count": "4",
+      "op_count": "10",
+      "desc": "Katman: Çekirdek (L0)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Kernel Squad    |    KPI: Plugin install p95 <30sn, dependency conflict otomatik tespiti %100, downtime-free upgrade oranı >%95"
+    },
+    {
+      "id": "K02",
+      "layer": "L0",
+      "name": "DocType Engine (Schema Runtime)",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Kernel Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Çekirdek (L0)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Kernel Squad    |    KPI: DocType definition → çalışır API <60sn, schema introspection LLM tool descriptionu için %100 kapsama, declarative migration eşleşmesi >%99"
+    },
+    {
+      "id": "K03",
+      "layer": "L0",
+      "name": "Migration & Versioning Engine",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "Kernel Squad",
+      "capability_count": "4",
+      "op_count": "5",
+      "desc": "Katman: Çekirdek (L0)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: Kernel Squad    |    KPI: Migration generation accuracy >%95, rollback success >%99, AI-suggested migration plan acceptance rate >%80"
+    },
+    {
+      "id": "K04",
+      "layer": "L0",
+      "name": "Hook & Event Bus",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Kernel Squad",
+      "capability_count": "3",
+      "op_count": "6",
+      "desc": "Katman: Çekirdek (L0)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Kernel Squad    |    KPI: Event delivery p95 <50ms, hook timeout incidence <%0.1, dead-letter recovery >%95"
+    },
+    {
+      "id": "K05",
+      "layer": "L0",
+      "name": "Service Container & Configuration",
+      "faz": "Faz 2",
+      "priority": "P1",
+      "squad": "Kernel Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Çekirdek (L0)    |    Faz: Faz 2    |    Öncelik: P1    |    Sahip: Kernel Squad    |    KPI: Config read p99 <5ms, feature flag toggle propagation <2sn, secret rotation downtime 0"
+    },
+    {
+      "id": "I01",
+      "layer": "L1",
+      "name": "Tenant Lifecycle Management",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Identity Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Kimlik ve Kiracılık (L1)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Identity Squad    |    KPI: Provisioning p95 <60sn, isolation breach 0, schema-per-tenant migration eşzamanlılığı >%95"
+    },
+    {
+      "id": "I02",
+      "layer": "L1",
+      "name": "User & Identity Core",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Identity Squad",
+      "capability_count": "4",
+      "op_count": "8",
+      "desc": "Katman: Kimlik ve Kiracılık (L1)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Identity Squad    |    KPI: Kullanıcı arama p95 <300ms, principal type resolution %100 doğruluk, merge/split conflict <%0.1"
+    },
+    {
+      "id": "I03",
+      "layer": "L1",
+      "name": "Authentication & Sessions",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Identity Squad",
+      "capability_count": "4",
+      "op_count": "9",
+      "desc": "Katman: Kimlik ve Kiracılık (L1)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Identity Squad    |    KPI: Login latency p95 <800ms, brute-force attempt 0 başarılı, agent token TTL ihlali 0"
+    },
+    {
+      "id": "I04",
+      "layer": "L1",
+      "name": "Permission Framework",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Identity Squad",
+      "capability_count": "4",
+      "op_count": "8",
+      "desc": "Katman: Kimlik ve Kiracılık (L1)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Identity Squad    |    KPI: Permission check p99 <10ms, misconfig (over-privileged) tespiti otomatik %100, agent privilege escalation 0"
+    },
+    {
+      "id": "I05",
+      "layer": "L1",
+      "name": "Multi-Tenant Isolation",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "Identity Squad + Security Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Kimlik ve Kiracılık (L1)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: Identity Squad + Security Squad    |    KPI: Cross-tenant breach 0, tenant context propagation hatası <%0.01, schema switch overhead p99 <2ms"
+    },
+    {
+      "id": "A01",
+      "layer": "L2",
+      "name": "MCP Server Framework",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad",
+      "capability_count": "5",
+      "op_count": "9",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Agent Runtime Squad    |    KPI: Tool discovery latency <100ms, MCP transport uptime >%99.95, tool description LLM-readable score >%95"
+    },
+    {
+      "id": "A02",
+      "layer": "L2",
+      "name": "Tool Registry & Discovery",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad",
+      "capability_count": "5",
+      "op_count": "7",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Agent Runtime Squad    |    KPI: Tool description LLM tool-selection accuracy >%90, tool registry sync <5sn, deprecated tool cleanup >%99"
+    },
+    {
+      "id": "A03",
+      "layer": "L2",
+      "name": "Agent Identity & Capability Scopes",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad + Security Squad",
+      "capability_count": "5",
+      "op_count": "8",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Agent Runtime Squad + Security Squad    |    KPI: Privilege escalation 0, scope drift tespit <1sn, scope binding accuracy %100"
+    },
+    {
+      "id": "A04",
+      "layer": "L2",
+      "name": "Agent Memory Layer",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad",
+      "capability_count": "5",
+      "op_count": "7",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: Agent Runtime Squad    |    KPI: Memory recall relevance >%85, write latency <100ms, context window optimization (token tasarrufu) >%30"
+    },
+    {
+      "id": "A05",
+      "layer": "L2",
+      "name": "Vector Store & Embedding Pipeline",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad + AI Squad",
+      "capability_count": "5",
+      "op_count": "7",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: Agent Runtime Squad + AI Squad    |    KPI: Embedding generation throughput >1000/dk, hybrid search relevance NDCG@10 >0.75, embedding model upgrade downtime 0"
+    },
+    {
+      "id": "A06",
+      "layer": "L2",
+      "name": "Prompt Library & Versioning",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "AI Squad",
+      "capability_count": "5",
+      "op_count": "8",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: AI Squad    |    KPI: Prompt deploy <2dk, A/B winning detection automated, eval coverage per prompt >%80"
+    },
+    {
+      "id": "A07",
+      "layer": "L2",
+      "name": "LLM Provider Abstraction",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "AI Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: AI Squad    |    KPI: Provider failover <2sn, cost optimization tasarruf >%20, rate-limit absorption başarı >%99"
+    },
+    {
+      "id": "A08",
+      "layer": "L2",
+      "name": "LLM Observability & Cost Tracking",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "AI Squad + Platform Ops Squad",
+      "capability_count": "4",
+      "op_count": "8",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: AI Squad + Platform Ops Squad    |    KPI: Cost attribution accuracy >%99, hallucination flag false-positive <%10, latency p99 dashboard refresh <30sn"
+    },
+    {
+      "id": "A09",
+      "layer": "L2",
+      "name": "Agent Orchestration & Workflow",
+      "faz": "Faz 3",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad + AI Squad",
+      "capability_count": "5",
+      "op_count": "8",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 3    |    Öncelik: P0    |    Sahip: Agent Runtime Squad + AI Squad    |    KPI: Multi-step task success rate >%75, checkpoint-resume reliability >%99, human approval queue median wait <15dk"
+    },
+    {
+      "id": "A10",
+      "layer": "L2",
+      "name": "Streaming & SSE Primitives",
+      "faz": "Faz 2",
+      "priority": "P1",
+      "squad": "Agent Runtime Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 2    |    Öncelik: P1    |    Sahip: Agent Runtime Squad    |    KPI: Stream reconnect success >%99, backpressure dropout <%0.1, fan-out 1→N latency p99 <100ms"
+    },
+    {
+      "id": "A11",
+      "layer": "L2",
+      "name": "Conversation & Session Management",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "Agent Runtime Squad",
+      "capability_count": "4",
+      "op_count": "6",
+      "desc": "Katman: Agent Çalışma Zamanı (L2)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: Agent Runtime Squad    |    KPI: Session resume p95 <300ms, conversation branching consistency %100, context window optimization >%30"
+    },
+    {
+      "id": "S01",
+      "layer": "L3",
+      "name": "Auto REST API Engine",
+      "faz": "Faz 1",
+      "priority": "P0",
+      "squad": "Application Squad",
+      "capability_count": "5",
+      "op_count": "6",
+      "desc": "Katman: Uygulama Yüzeyi (L3)    |    Faz: Faz 1    |    Öncelik: P0    |    Sahip: Application Squad    |    KPI: DocType → API endpoint p95 <60sn, OpenAPI conformance %100, endpoint latency p95 <120ms"
+    },
+    {
+      "id": "S02",
+      "layer": "L3",
+      "name": "Auto Admin UI Engine",
+      "faz": "Faz 2",
+      "priority": "P0",
+      "squad": "Application Squad",
+      "capability_count": "5",
+      "op_count": "7",
+      "desc": "Katman: Uygulama Yüzeyi (L3)    |    Faz: Faz 2    |    Öncelik: P0    |    Sahip: Application Squad    |    KPI: DocType → çalışır admin UI <2dk, custom override penalty <%10, Lighthouse a11y score >90"
+    },
+    {
+      "id": "S03",
+      "layer": "L3",
+      "name": "Form & Validation Framework",
+      "faz": "Faz 2",
+      "priority": "P1",
+      "squad": "Application Squad",
+      "capability_count": "5",
+      "op_count": "5",
+      "desc": "Katman: Uygulama Yüzeyi (L3)    |    Faz: Faz 2    |    Öncelik: P1    |    Sahip: Application Squad    |    KPI: Form save success >%99.5, validation latency p95 <80ms, AI auto-fill accuracy >%80"
+    },
+    {
+      "id": "S04",
+      "layer": "L3",
+      "name": "Workflow & State Machine",
+      "faz": "Faz 3",
+      "priority": "P1",
+      "squad": "Application Squad",
+      "capability_count": "4",
+      "op_count": "6",
+      "desc": "Katman: Uygulama Yüzeyi (L3)    |    Faz: Faz 3    |    Öncelik: P1    |    Sahip: Application Squad    |    KPI: Transition latency p95 <100ms, illegal transition 0, audit completeness %100"
+    },
+    {
+      "id": "S05",
+      "layer": "L3",
+      "name": "Notification Center",
+      "faz": "Faz 3",
+      "priority": "P1",
+      "squad": "Application Squad",
+      "capability_count": "5",
+      "op_count": "5",
+      "desc": "Katman: Uygulama Yüzeyi (L3)    |    Faz: Faz 3    |    Öncelik: P1    |    Sahip: Application Squad    |    KPI: Email delivery rate >%98, in-app render p95 <500ms, user preference compliance %100"
+    },
+    {
+      "id": "S06",
+      "layer": "L3",
+      "name": "Search & Discovery",
+      "faz": "Faz 3",
+      "priority": "P1",
+      "squad": "Application Squad + AI Squad",
+      "capability_count": "4",
+      "op_count": "5",
+      "desc": "Katman: Uygulama Yüzeyi (L3)    |    Faz: Faz 3    |    Öncelik: P1    |    Sahip: Application Squad + AI Squad    |    KPI: Search relevance NDCG@10 >0.78, query latency p95 <250ms, NL query understanding accuracy >%85"
+    },
+    {
+      "id": "D01",
+      "layer": "L4",
+      "name": "Audit Log & Event Sourcing",
+      "faz": "Faz 3",
+      "priority": "P0",
+      "squad": "Compliance Squad + Platform Ops Squad",
+      "capability_count": "5",
+      "op_count": "7",
+      "desc": "Katman: Veri, Uyumluluk ve Güvenlik (L4)    |    Faz: Faz 3    |    Öncelik: P0    |    Sahip: Compliance Squad + Platform Ops Squad    |    KPI: Event capture completeness %100, log query p95 <2sn, tamper detection (hash chain) %100"
+    },
+    {
+      "id": "D02",
+      "layer": "L4",
+      "name": "PII Governance & Data Classification",
+      "faz": "Faz 3",
+      "priority": "P0",
+      "squad": "Compliance Squad + Security Squad",
+      "capability_count": "5",
+      "op_count": "8",
+      "desc": "Katman: Veri, Uyumluluk ve Güvenlik (L4)    |    Faz: Faz 3    |    Öncelik: P0    |    Sahip: Compliance Squad + Security Squad    |    KPI: PII discovery recall >%98, redaction in logs %100, DSAR (data subject access request) süresi <72sa"
+    },
+    {
+      "id": "D03",
+      "layer": "L4",
+      "name": "Compliance Framework (KVKK / GDPR / SOC2)",
+      "faz": "Faz 4",
+      "priority": "P1",
+      "squad": "Compliance Squad",
+      "capability_count": "4",
+      "op_count": "5",
+      "desc": "Katman: Veri, Uyumluluk ve Güvenlik (L4)    |    Faz: Faz 4    |    Öncelik: P1    |    Sahip: Compliance Squad    |    KPI: Control evidence freshness <30 gün, audit hazırlık süresi <5 gün, compliance posture skoru >85"
+    },
+    {
+      "id": "O01",
+      "layer": "L5",
+      "name": "Observability & SLO Monitoring",
+      "faz": "Faz 3",
+      "priority": "P0",
+      "squad": "Platform Ops Squad",
+      "capability_count": "4",
+      "op_count": "7",
+      "desc": "Katman: Operasyon ve Marketplace (L5)    |    Faz: Faz 3    |    Öncelik: P0    |    Sahip: Platform Ops Squad    |    KPI: MTTR <30dk, SLO breach precision >%95, alerts/incident <5"
+    },
+    {
+      "id": "O02",
+      "layer": "L5",
+      "name": "Plugin Marketplace",
+      "faz": "Faz 4",
+      "priority": "P1",
+      "squad": "Marketplace Squad",
+      "capability_count": "5",
+      "op_count": "8",
+      "desc": "Katman: Operasyon ve Marketplace (L5)    |    Faz: Faz 4    |    Öncelik: P1    |    Sahip: Marketplace Squad    |    KPI: Plugin install conversion >%5, refund rate <%2, developer onboarding <1 saat"
+    },
+    {
+      "id": "O03",
+      "layer": "L5",
+      "name": "Plugin Security Review & Sandbox Certification",
+      "faz": "Faz 4",
+      "priority": "P0",
+      "squad": "Security Squad + Marketplace Squad",
+      "capability_count": "5",
+      "op_count": "7",
+      "desc": "Katman: Operasyon ve Marketplace (L5)    |    Faz: Faz 4    |    Öncelik: P0    |    Sahip: Security Squad + Marketplace Squad    |    KPI: Approve median <72sa, post-publish vulnerability disclosure <%1, supply chain attack 0"
+    }
+  ]
+}

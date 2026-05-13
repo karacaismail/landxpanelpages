@@ -1,0 +1,266 @@
+{
+  "K01": {
+    "id": "K01",
+    "kpis_raw": "Plugin install p95 <30sn, dependency conflict otomatik tespiti %100, downtime-free upgrade oranı >%95",
+    "desc": "Plugin keşfi, manifest doğrulama, install/upgrade/uninstall, dependency resolution, sürüm uyumluluğu. Tüm üst katmanlar buna bağlı.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "K02": {
+    "id": "K02",
+    "kpis_raw": "DocType definition → çalışır API <60sn, schema introspection LLM tool descriptionu için %100 kapsama, declarative migration eşleşmesi >%99",
+    "desc": "Deklaratif DocType tanımı → runtime'da DB tablosu, REST endpoint, validation, admin UI ve MCP tool spec'i otomatik üretilir. Frappe DocType'ın AI-native eşdeğeri.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "K03": {
+    "id": "K03",
+    "kpis_raw": "Migration generation accuracy >%95, rollback success >%99, AI-suggested migration plan acceptance rate >%80",
+    "desc": "Plugin sürüm geçişlerinde DB schema migration, data migration, rollback. Frappe migrate'in AI-augmented eşdeğeri.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "K04": {
+    "id": "K04",
+    "kpis_raw": "Event delivery p95 <50ms, hook timeout incidence <%0.1, dead-letter recovery >%95",
+    "desc": "Plugin'lerin birbirini bilmeden davranış genişletmesi için hook (sync) ve event (async) sistemi. Drupal hook'larının async + agent-aware eşdeğeri.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "K05": {
+    "id": "K05",
+    "kpis_raw": "Config read p99 <5ms, feature flag toggle propagation <2sn, secret rotation downtime 0",
+    "desc": "Dependency injection container, hierarchical configuration (global → tenant → user), feature flags, secret resolution.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "I01": {
+    "id": "I01",
+    "kpis_raw": "Provisioning p95 <60sn, isolation breach 0, schema-per-tenant migration eşzamanlılığı >%95",
+    "desc": "Tenant (müşteri organizasyon) provisioning, suspend, archive, kota yönetimi. Multi-tenant SaaS'in en alt katmanı.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "I02": {
+    "id": "I02",
+    "kpis_raw": "Kullanıcı arama p95 <300ms, principal type resolution %100 doğruluk, merge/split conflict <%0.1",
+    "desc": "Bireysel kullanıcı, kurumsal kullanıcı, agent kullanıcı, system kullanıcı — hepsi tek polymorphic identity modelinde. Kullanıcının agent ile karıştırılmaması için principal_type ayrımı zorunlu.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "I03": {
+    "id": "I03",
+    "kpis_raw": "Login latency p95 <800ms, brute-force attempt 0 başarılı, agent token TTL ihlali 0",
+    "desc": "Password, OAuth, OIDC, magic link, passkey, API key, agent token — tek auth katmanı. Agent token'ları human session'lardan ayrı muhasebe edilir.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "I04": {
+    "id": "I04",
+    "kpis_raw": "Permission check p99 <10ms, misconfig (over-privileged) tespiti otomatik %100, agent privilege escalation 0",
+    "desc": "RBAC + ABAC + agent capability scopes. Agent kullanıcı adına çalışırken user'ın izni VE agent'ın capability scope'u kesişimi geçerli olur.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "I05": {
+    "id": "I05",
+    "kpis_raw": "Cross-tenant breach 0, tenant context propagation hatası <%0.01, schema switch overhead p99 <2ms",
+    "desc": "Schema-per-tenant izolasyon, query interception, cross-tenant erişim tespiti, tenant context propagation. Agent çağrıları tenant context'i kaybetmeden alt servislere taşınmalı.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A01": {
+    "id": "A01",
+    "kpis_raw": "Tool discovery latency <100ms, MCP transport uptime >%99.95, tool description LLM-readable score >%95",
+    "desc": "Model Context Protocol native server. Plugin'lerin tanımladığı tool'lar otomatik MCP endpoint olarak servis edilir. LLM agent'lar standart MCP transport (stdio/sse/streaming-http) ile bağlanabilir.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A02": {
+    "id": "A02",
+    "kpis_raw": "Tool description LLM tool-selection accuracy >%90, tool registry sync <5sn, deprecated tool cleanup >%99",
+    "desc": "Plugin'lerin tanımladığı tool'ların merkezi kataloğu. Her tool: input/output schema, side-effect annotation, idempotency, blast radius, cost class, LLM-readable description. AI agent'ın hangi tool'u ne zaman çağıracağını bilmesi için tool description AI-grade kalitede olmalı.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A03": {
+    "id": "A03",
+    "kpis_raw": "Privilege escalation 0, scope drift tespit <1sn, scope binding accuracy %100",
+    "desc": "Agent kimliği, capability scope binding, session-bound limit, blast-radius kontrolü, ihlal tespiti. Her agent çağrısında etkin yetki = user_perms ∩ agent_scope ∩ session_limits.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A04": {
+    "id": "A04",
+    "kpis_raw": "Memory recall relevance >%85, write latency <100ms, context window optimization (token tasarrufu) >%30",
+    "desc": "Short-term (conversation buffer), long-term (semantic), episodic (geçmiş etkileşim), procedural (öğrenilmiş prosedür) memory katmanları. Hibrit retrieval: vector + SQL filter + temporal weighting.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A05": {
+    "id": "A05",
+    "kpis_raw": "Embedding generation throughput >1000/dk, hybrid search relevance NDCG@10 >0.75, embedding model upgrade downtime 0",
+    "desc": "pgvector tabanlı vector storage, embedding job runner, model versioning, hybrid search (vector + BM25 + filter), reranking. Tüm semantic operasyonların altyapısı.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A06": {
+    "id": "A06",
+    "kpis_raw": "Prompt deploy <2dk, A/B winning detection automated, eval coverage per prompt >%80",
+    "desc": "Prompt'ların kod gibi versiyonlanması, A/B test, eval suite, drift detection, rollout. Her prompt: input variables, output schema, eval cases, metrik bağlantısı.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A07": {
+    "id": "A07",
+    "kpis_raw": "Provider failover <2sn, cost optimization tasarruf >%20, rate-limit absorption başarı >%99",
+    "desc": "Anthropic, OpenAI, Azure OpenAI, Bedrock, lokal Ollama gibi sağlayıcıları tek soyutlamada birleştirir. Routing (model fallback, cost-optimal, capability-based), retry, circuit breaker, streaming uyumluluğu.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A08": {
+    "id": "A08",
+    "kpis_raw": "Cost attribution accuracy >%99, hallucination flag false-positive <%10, latency p99 dashboard refresh <30sn",
+    "desc": "Her LLM çağrısı: input/output, token count, latency, cost, trace, hallucination skoru. Langfuse-equivalent ama MCP-aware. Cost attribution: tenant/agent/feature.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A09": {
+    "id": "A09",
+    "kpis_raw": "Multi-step task success rate >%75, checkpoint-resume reliability >%99, human approval queue median wait <15dk",
+    "desc": "Çok-adımlı agent görevleri için workflow engine. Plan-execute-reflect döngüsü, alt-agent çağrısı, paralel tool execution, checkpoint/resume, human-in-the-loop.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A10": {
+    "id": "A10",
+    "kpis_raw": "Stream reconnect success >%99, backpressure dropout <%0.1, fan-out 1→N latency p99 <100ms",
+    "desc": "LLM token stream, tool execution progress stream, agent step stream için unified SSE/WebSocket katmanı. Backpressure, reconnect, multiplex, fan-out destekli.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "A11": {
+    "id": "A11",
+    "kpis_raw": "Session resume p95 <300ms, conversation branching consistency %100, context window optimization >%30",
+    "desc": "Konuşma geçmişi, session state, multi-turn context, message threading, branching (alternative replies), conversation forking. Agent ile insan ve agent ile agent karışık konuşmaları destekler.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "S01": {
+    "id": "S01",
+    "kpis_raw": "DocType → API endpoint p95 <60sn, OpenAPI conformance %100, endpoint latency p95 <120ms",
+    "desc": "DocType tanımından otomatik REST endpoint üretimi (CRUD + filter + bulk). Aynı tanımdan OpenAPI spec, MCP tool listesi, GraphQL schema türetilir.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "S02": {
+    "id": "S02",
+    "kpis_raw": "DocType → çalışır admin UI <2dk, custom override penalty <%10, Lighthouse a11y score >90",
+    "desc": "DocType tanımından auto-generated admin UI: list view, detail view, form, bulk actions, filter side-panel. Flowbite + React Router v7. AI co-pilot her ekranda.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "S03": {
+    "id": "S03",
+    "kpis_raw": "Form save success >%99.5, validation latency p95 <80ms, AI auto-fill accuracy >%80",
+    "desc": "Form lifecycle, server-side + client-side validation, conditional fields, wizard flows, AI auto-fill, draft autosave. Tüm validation kuralları MCP tool olarak dış dünyaya da expose edilir.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "S04": {
+    "id": "S04",
+    "kpis_raw": "Transition latency p95 <100ms, illegal transition 0, audit completeness %100",
+    "desc": "DocType yaşam döngüsü için deklaratif state machine. Her transition: guard, action, side-effect, audit. Agent transition'ı tetikleyebilir (scope izinliyse).",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "S05": {
+    "id": "S05",
+    "kpis_raw": "Email delivery rate >%98, in-app render p95 <500ms, user preference compliance %100",
+    "desc": "Multi-channel bildirim: in-app, email, SMS, push, webhook, agent ping. Template management, user preferences, digest, throttle.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "S06": {
+    "id": "S06",
+    "kpis_raw": "Search relevance NDCG@10 >0.78, query latency p95 <250ms, NL query understanding accuracy >%85",
+    "desc": "DocType genel arama yüzeyi. Hybrid retrieval (BM25 + vector), faceted filter, query understanding (NL → structured), saved searches, alert subscriptions.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "D01": {
+    "id": "D01",
+    "kpis_raw": "Event capture completeness %100, log query p95 <2sn, tamper detection (hash chain) %100",
+    "desc": "Tüm değişikliklerin (kim, ne zaman, ne yaptı, neden) yazılı kaydı. Append-only event log, replay, forensic search, retention policy. Agent eylemleri ayrı bir audit kanalında ve ek metadata'yla kayıt altına alınır.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "D02": {
+    "id": "D02",
+    "kpis_raw": "PII discovery recall >%98, redaction in logs %100, DSAR (data subject access request) süresi <72sa",
+    "desc": "Otomatik PII keşfi, data classification (public/internal/confidential/restricted), field-level encryption policy, redaction in logs, KVKK madde 7 (silme) ve madde 11 (erişim) hakları otomasyonu.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "D03": {
+    "id": "D03",
+    "kpis_raw": "Control evidence freshness <30 gün, audit hazırlık süresi <5 gün, compliance posture skoru >85",
+    "desc": "Uyumluluk kontrol matrisi, kanıt toplama otomasyonu, periyodik tarama, discrepancy ticket'ı. KVKK Veri Sorumluları Sicili (VERBİS) entegrasyonu, GDPR Article 30 records, SOC2 evidence collection.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "O01": {
+    "id": "O01",
+    "kpis_raw": "MTTR <30dk, SLO breach precision >%95, alerts/incident <5",
+    "desc": "Logs, metrics, traces — unified observability. SLO definition, error budget, alerting, on-call routing. AI anomaly detection.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "O02": {
+    "id": "O02",
+    "kpis_raw": "Plugin install conversion >%5, refund rate <%2, developer onboarding <1 saat",
+    "desc": "3. parti plugin keşif, kurulum, lisans, ödeme, sürüm yönetimi. Plugin developer dashboard, billing, revenue share, rating/review.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  },
+  "O03": {
+    "id": "O03",
+    "kpis_raw": "Approve median <72sa, post-publish vulnerability disclosure <%1, supply chain attack 0",
+    "desc": "3. parti plugin'lerin güvenlik denetimi, sandbox uygunluk testleri, imzalı bundle, supply-chain doğrulama. Marketplace'in kara kutusu — buradan geçmeyen plugin yayına çıkmaz.",
+    "capabilities": [],
+    "cap_types": [],
+    "fields": []
+  }
+}
