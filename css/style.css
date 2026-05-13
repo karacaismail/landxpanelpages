@@ -177,6 +177,9 @@ hr{ border:0; border-top:1px solid var(--border); margin:var(--s-4) 0; }
 }
 .brand i{ font-size:1.4rem; color:var(--primary); }
 .brand .brand-sub{ color:var(--text-muted); font-weight:400; font-size:var(--fs-xs); }
+@media (max-width: 419px){
+  .brand span:first-of-type{ display:none; }
+}
 
 .header-spacer{ flex:1; }
 
@@ -190,12 +193,19 @@ hr{ border:0; border-top:1px solid var(--border); margin:var(--s-4) 0; }
   font-weight:500;
   color:var(--text);
   min-height:36px;
+  max-width: 160px;
 }
 .role-switcher select{
   background:transparent; border:none; outline:none;
   font:inherit; color:inherit;
   padding-right:var(--s-3);
   cursor:pointer;
+  max-width:120px;
+  text-overflow:ellipsis;
+}
+@media (max-width: 419px){
+  .role-switcher{ max-width:120px; padding:6px var(--s-2); }
+  .role-switcher select{ max-width:80px; font-size:var(--fs-xs); }
 }
 .role-switcher i{ font-size:1rem; color:var(--primary); }
 
