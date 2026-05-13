@@ -321,10 +321,33 @@ const State = {
   userId: ACTIVE_USER_PER_ROLE.buyer,
   view: 'discover',
   params: {},
-  filters: { q:'', il:'', imar:'', tkgm:'', fiyat_max:0, alan_min:0, tag_hint:'' },
+  filters: { q:'', il:'', imar:'', tkgm:'', fiyat_max:0, alan_min:0, tag_hint:'', sort:'newest' },
   wizard: {
     step:0,
+    errors:{},
     data:{ il:'', ilce:'', mahalle:'', ada:'', parsel:'', alan:0, imar:'', tapu:'', tkgm:'', yol_cephesi:0, emsal:0, kat_adedi:0, fiyat:0, desc:'', tags:[], title:'' }
   },
   favs: JSON.parse(JSON.stringify(FAVORITES)),
+  photoIdx: 0,
+  myListingsFilter: 'all',     // all | active | pending | rejected
+  usersFilter: 'all',          // all | buyer | seller | admin
+  offersFilter: 'all',         // all | pending | accepted | declined
+  perfRange: 14,               // 7 | 14 | 30
+  approvalFilter: 'all',       // all | low | medium | high
+};
+
+// Required wizard fields per step (for validation)
+const WIZARD_REQUIRED = [
+  ['il','ilce','mahalle'],
+  ['alan','imar','tapu','tkgm'],
+  ['fiyat'],
+  [],
+];
+
+// İl bazlı zone (placeholder konum tahmini için)
+const IL_MAP = {
+  'İstanbul':[41.0082, 28.9784], 'Ankara':[39.9334, 32.8597], 'İzmir':[38.4192, 27.1287],
+  'Bursa':[40.1956, 29.0610], 'Antalya':[36.8969, 30.7133], 'Muğla':[37.2153, 28.3636],
+  'Bolu':[40.7392, 31.6111], 'Sakarya':[40.7569, 30.3781], 'Eskişehir':[39.7767, 30.5206],
+  'Gaziantep':[37.0662, 37.3833], 'Trabzon':[41.0027, 39.7178],
 };
