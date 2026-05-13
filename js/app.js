@@ -112,7 +112,7 @@ const Render = {
   },
 
   view(){
-    const validViews = NAV[State.role].map(n=>n.id).concat(['listing','thread','profile']);
+    const validViews = NAV[State.role].map(n=>n.id).concat(['listing','thread','profile','compare','notifications']);
     if (!validViews.includes(State.view)) {
       // Show 404 instead of silent redirect when hash invalid
       Render.shell();
@@ -146,10 +146,39 @@ const Render = {
       case 'approval':    main.innerHTML = views.approval();    break;
       case 'users':       main.innerHTML = views.users();       break;
       case 'reports':     main.innerHTML = views.reports();     break;
-      case 'profile':     main.innerHTML = views.profile();     break;
+      case 'profile':       main.innerHTML = views.profile();     break;
+      case 'compare':       main.innerHTML = views.compare();     break;
+      case 'notifications': main.innerHTML = views.notifications(); break;
     }
+    // mobile FAB
+    renderFab();
   }
 };
+
+function renderFab(){
+  let fab = $('#fab');
+  if (!fab){
+    fab = document.createElement('button');
+    fab.id = 'fab';
+    fab.className = 'fab';
+    document.body.appendChild(fab);
+  }
+  if (State.role === 'seller' && State.view === 'my-listings'){
+    fab.style.display = '';
+    fab.innerHTML = '<i class="ph ph-plus"></i>';
+    fab.title = 'Yeni İlan';
+    fab.setAttribute('aria-label','Yeni İlan');
+    fab.onclick = () => Router.go('wizard');
+  } else if (State.role === 'buyer' && (State.view === 'favorites' || State.view === 'compare') && State.compare.length){
+    fab.style.display = '';
+    fab.innerHTML = `<i class="ph ph-scales"></i><span>Karşılaştır ${State.compare.length}</span>`;
+    fab.title = 'Karşılaştır';
+    fab.setAttribute('aria-label','Karşılaştır');
+    fab.onclick = () => Router.go('compare');
+  } else {
+    fab.style.display = 'none';
+  }
+}
 
 function rolLabel(r){ return { buyer:'Alıcı', seller:'Satıcı', admin:'Yönetici' }[r]; }
 function currentUser(){ return USERS.find(u => u.id === State.userId) || USERS[0]; }
@@ -448,8 +477,9 @@ views.favorites = () => {
   return `
     <div class="page-header">
       <h1>Favorilerim</h1>
-      <div class="subtitle">${favs.length} kayıtlı ilan</div>
+      <div class="subtitle">${favs.length} kayıtlı ilan${State.compare.length ? ` · ${State.compare.length} karşılaştırma seçimi` : ''}</div>
     </div>
+    ${tipCard('favorites', 'Karşılaştır', 'Karşılaştırmak istediğin ilanları seç (max 3), sonra alttaki butona dokun.')}
     ${favs.length === 0 ? `
       <div class="empty">
         <i class="ph ph-heart"></i>
@@ -458,11 +488,140 @@ views.favorites = () => {
         <button class="btn primary" data-action="nav" data-view="discover"><i class="ph ph-compass"></i> Keşfet'e Git</button>
       </div>
     ` : `
-      <div class="row between mb-3">
+      <div class="row between mb-3" style="flex-wrap:wrap; gap:var(--s-2);">
         <span class="muted">${favs.length} ilan</span>
-        <button class="btn sm ghost" data-action="clear-favs"><i class="ph ph-trash"></i> Tümünü Temizle</button>
+        <div class="row gap-2">
+          ${State.compare.length ? `<button class="btn sm primary" data-action="nav" data-view="compare"><i class="ph ph-scales"></i> Karşılaştır (${State.compare.length})</button>` : ''}
+          ${State.compare.length ? `<button class="btn sm ghost" data-action="clear-compare"><i class="ph ph-x"></i> Seçimi Temizle</button>` : ''}
+          <button class="btn sm ghost" data-action="clear-favs"><i class="ph ph-trash"></i> Tümünü Temizle</button>
+        </div>
       </div>
-      <div class="grid listings">${favs.map(l => listingCard(l)).join('')}</div>
+      <div class="grid listings">${favs.map(l => favCard(l)).join('')}</div>
+    `}
+  `;
+};
+
+function favCard(l){
+  const sel = State.compare.includes(l.id);
+  return `
+    <article class="listing-card ${sel?'sel':''}" data-action="open-listing" data-id="${l.id}" tabindex="0" role="link">
+      <div class="listing-photo" style="background:linear-gradient(135deg, ${l.photo_color}, ${shade(l.photo_color,25)})">
+        <div class="photo-label">${esc(l.photo_label || l.il)}</div>
+        ${l.verified ? '<div class="verified-badge"><i class="ph ph-seal-check"></i>Onaylı</div>' : ''}
+        <button class="fav-btn active" data-action="toggle-fav" data-id="${l.id}" title="Favoriden çıkar" aria-label="Favoriden çıkar"><i class="ph-fill ph-heart"></i></button>
+        <button class="compare-btn ${sel?'on':''}" data-action="toggle-compare" data-id="${l.id}" aria-label="Karşılaştırmaya ekle">
+          <i class="ph ${sel?'ph-check-square':'ph-square'}"></i> ${sel?'Seçildi':'Karşılaştır'}
+        </button>
+      </div>
+      <div class="listing-body">
+        <div class="listing-title">${esc(l.title)}</div>
+        <div class="listing-loc"><i class="ph ph-map-pin"></i> ${esc(l.ilce)}, ${esc(l.il)}</div>
+        <div class="listing-stats">
+          <span><i class="ph ph-ruler"></i> ${fmtAlan(l.alan)}</span>
+          <span><i class="ph ph-buildings"></i> ${esc(l.imar)}</span>
+        </div>
+        <div class="listing-price">${fmtTL(l.fiyat)}</div>
+      </div>
+    </article>
+  `;
+}
+
+function tipCard(key, title, body){
+  if (State.tipsDismissed[key]) return '';
+  return `
+    <div class="tip-card mb-3">
+      <i class="ph ph-lightbulb"></i>
+      <div style="flex:1;">
+        <div style="font-weight:600;">${esc(title)}</div>
+        <div class="muted" style="font-size:var(--fs-xs);">${esc(body)}</div>
+      </div>
+      <button class="icon-btn" data-action="dismiss-tip" data-key="${key}" aria-label="Kapat" style="background:transparent;border:none;"><i class="ph ph-x"></i></button>
+    </div>
+  `;
+}
+
+/* ----- BUYER: Compare ------------------------------------------------- */
+views.compare = () => {
+  const items = State.compare.map(id => listingById(id)).filter(Boolean);
+  if (items.length === 0) return `
+    <div class="page-header"><h1>Karşılaştırma</h1></div>
+    <div class="empty">
+      <i class="ph ph-scales"></i>
+      <h3>Seçili ilan yok</h3>
+      <p>Favorilerden en az 2 ilan seçin.</p>
+      <button class="btn primary" data-action="nav" data-view="favorites"><i class="ph ph-heart"></i> Favorilere git</button>
+    </div>`;
+
+  const rows = [
+    ['İl',           l => esc(l.il)],
+    ['İlçe',         l => esc(l.ilce)],
+    ['Mahalle',      l => esc(l.mahalle)],
+    ['Alan',         l => fmtAlan(l.alan)],
+    ['İmar',         l => esc(l.imar)],
+    ['Tapu',         l => esc(l.tapu)],
+    ['TKGM',         l => `<span class="badge ${l.tkgm==='Temiz'?'success':'warning'}">${esc(l.tkgm)}</span>`],
+    ['Emsal',        l => l.emsal>0?'E:'+l.emsal:'—'],
+    ['Yol Cephesi',  l => l.yol_cephesi+' m'],
+    ['Fiyat',        l => `<strong>${fmtTLFull(l.fiyat)}</strong>`],
+    ['m² fiyat',     l => fmt(l.fiyat_m2)+' ₺'],
+    ['AI bant',      l => `${fmtTL(l.ai_min)} – ${fmtTL(l.ai_max)}`],
+    ['Görüntülenme', l => l.views],
+    ['Favori',       l => l.favs],
+  ];
+
+  return `
+    <div class="row between mb-3">
+      <div class="page-header" style="margin:0;">
+        <h1>Karşılaştırma</h1>
+        <div class="subtitle">${items.length} ilan yan yana</div>
+      </div>
+      <button class="btn sm ghost" data-action="clear-compare"><i class="ph ph-x"></i> Temizle</button>
+    </div>
+
+    <div class="compare-grid" style="--cols:${items.length}">
+      <div class="compare-cell head"></div>
+      ${items.map(l => `
+        <div class="compare-cell head">
+          <div class="listing-photo" style="background:linear-gradient(135deg, ${l.photo_color}, ${shade(l.photo_color,25)}); aspect-ratio:16/9;border-radius:var(--r-md);">
+            <div class="photo-label">${esc(l.photo_label||l.il)}</div>
+          </div>
+          <div style="font-weight:600; margin-top:var(--s-2);">${esc(l.title)}</div>
+          <button class="btn sm mt-2" data-action="open-listing" data-id="${l.id}"><i class="ph ph-arrow-square-out"></i> Aç</button>
+        </div>
+      `).join('')}
+
+      ${rows.map(([label, val]) => `
+        <div class="compare-cell label">${label}</div>
+        ${items.map(l => `<div class="compare-cell">${val(l)}</div>`).join('')}
+      `).join('')}
+    </div>
+  `;
+};
+
+/* ----- Notifications full page ---------------------------------------- */
+views.notifications = () => {
+  const ns = NOTIFICATIONS[State.role] || [];
+  return `
+    <div class="page-header">
+      <h1>Bildirimler</h1>
+      <div class="subtitle">${ns.filter(n=>!n.read).length} okunmamış · toplam ${ns.length}</div>
+    </div>
+    ${ns.length === 0 ? '<div class="empty"><i class="ph ph-bell-slash"></i><h3>Bildirim yok</h3></div>' : `
+      <div class="card flush">
+        ${ns.map(n => `
+          <div class="row gap-3" style="padding:var(--s-3) var(--s-4); border-bottom:1px solid var(--border);">
+            <div class="kpi-icon" style="${n.read?'opacity:0.45;':''}"><i class="ph ${esc(n.icon)}"></i></div>
+            <div style="flex:1;">
+              <div style="${n.read?'color:var(--text-muted);':''}">${esc(n.text)}</div>
+              <div class="muted" style="font-size:var(--fs-xs);">${esc(n.time)}</div>
+            </div>
+            ${!n.read ? '<span class="status-dot active"></span>' : ''}
+          </div>
+        `).join('')}
+      </div>
+      <div class="row gap-2 mt-3">
+        <button class="btn ghost" data-action="mark-all-read"><i class="ph ph-check-double"></i> Tümünü okundu işaretle</button>
+      </div>
     `}
   `;
 };
@@ -1653,6 +1812,30 @@ document.body.addEventListener('click', e => {
     case 'set-sort':
       // handled by change listener
       break;
+    case 'toggle-compare': {
+      e.stopPropagation();
+      const id = target.dataset.id;
+      const i = State.compare.indexOf(id);
+      if (i>=0) State.compare.splice(i,1);
+      else if (State.compare.length < 3) State.compare.push(id);
+      else { Toast.show('En fazla 3 ilan karşılaştırılabilir', 'danger', 'ph-warning'); break; }
+      Render.view();
+      break;
+    }
+    case 'clear-compare':
+      State.compare = [];
+      Render.view();
+      Toast.show('Karşılaştırma seçimi temizlendi', '', 'ph-broom');
+      break;
+    case 'dismiss-tip':
+      State.tipsDismissed[target.dataset.key] = true;
+      Render.view();
+      break;
+    case 'mark-all-read':
+      (NOTIFICATIONS[State.role] || []).forEach(n => n.read = true);
+      Render.view();
+      Toast.show('Tüm bildirimler okundu işaretlendi', '', 'ph-check-double');
+      break;
   }
 });
 
@@ -1704,26 +1887,45 @@ $('#themeBtn').addEventListener('click', () => {
   $('#themeIcon').className = 'ph ' + (t==='dark' ? 'ph-moon' : 'ph-sun');
 });
 
-/* Notif btn → sheet */
+/* Notif btn → tam sayfa bildirimler */
 $('#notifBtn').addEventListener('click', () => {
-  const ns = NOTIFICATIONS[State.role] || [];
-  Sheet.open(`
-    <h3 class="mb-3">Bildirimler</h3>
-    ${ns.length===0 ? '<p class="muted">Henüz bildirim yok.</p>' :
-      ns.map(n => `
-        <div class="row gap-3" style="padding:var(--s-3) 0; border-bottom:1px solid var(--border);">
-          <div class="kpi-icon"><i class="ph ${esc(n.icon)}"></i></div>
-          <div style="flex:1;">
-            <div style="${n.read?'color:var(--text-muted);':''}">${esc(n.text)}</div>
-            <div class="muted" style="font-size:var(--fs-xs);">${esc(n.time)}</div>
-          </div>
-          ${!n.read ? '<span class="status-dot active"></span>' : ''}
-        </div>
-      `).join('')
+  Router.go('notifications');
+});
+
+/* Desktop header global search */
+document.body.addEventListener('input', e => {
+  if (e.target.id === 'headerSearch'){
+    const q = e.target.value.trim().toLowerCase();
+    State.globalSearch = q;
+    const dd = $('#headerSearchDD');
+    if (!q){ if (dd) dd.style.display='none'; return; }
+    const hits = LISTINGS.filter(l => l.status==='active').filter(l =>
+      l.title.toLowerCase().includes(q) ||
+      l.il.toLowerCase().includes(q) ||
+      l.ilce.toLowerCase().includes(q) ||
+      l.imar.toLowerCase().includes(q)
+    ).slice(0,6);
+    if (dd){
+      dd.innerHTML = hits.length === 0
+        ? '<div class="dd-empty">Sonuç yok</div>'
+        : hits.map(l => `
+            <div class="dd-item" data-action="open-listing" data-id="${l.id}">
+              <div class="avatar sm" style="background:${l.photo_color};">${esc((l.il||'?')[0])}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="truncate">${esc(l.title)}</div>
+                <div class="muted" style="font-size:var(--fs-xs);">${esc(l.ilce)}, ${esc(l.il)} · ${fmtTL(l.fiyat)}</div>
+              </div>
+            </div>
+          `).join('');
+      dd.style.display = 'block';
     }
-    <button class="btn block mt-3" data-action="sheet-close">Kapat</button>
-  `);
-  ns.forEach(n => n.read = true);
+  }
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.header-search-wrap')){
+    const dd = $('#headerSearchDD');
+    if (dd) dd.style.display='none';
+  }
 });
 
 /* Initial route */

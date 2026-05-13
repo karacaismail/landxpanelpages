@@ -334,6 +334,9 @@ const State = {
   offersFilter: 'all',         // all | pending | accepted | declined
   perfRange: 14,               // 7 | 14 | 30
   approvalFilter: 'all',       // all | low | medium | high
+  compare: [],                 // listing id'leri (max 3)
+  tipsDismissed: {},           // {dashboard:true, favorites:true, ...}
+  globalSearch: '',
 };
 
 // Required wizard fields per step (for validation)
