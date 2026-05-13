@@ -382,6 +382,25 @@ const State = {
   introShown: false,           // hoş geldin tanıtımı
 };
 
+// Şikayet kuyruğu (admin)
+const COMPLAINTS = [
+  { id:'R001', listing_id:'L009', reporter_id:'U005', reason:'Yanlış bilgi', date:'2025-05-13', status:'open',     note:'Yol cephesi gerçek değil; uydu görüntüleriyle uyuşmuyor.' },
+  { id:'R002', listing_id:'L004', reporter_id:'U001', reason:'Sahte ilan',  date:'2025-05-12', status:'open',     note:'İpotek bilgisi gizlenmiş gibi görünüyor.' },
+  { id:'R003', listing_id:'L002', reporter_id:'U006', reason:'Çift kayıt',  date:'2025-05-09', status:'resolved', note:'Aynı arsa 2 ilan olarak görüldü.' },
+];
+
+// Trust score hesabı (satıcı için)
+function trustScore(uid){
+  const u = USERS.find(x => x.id === uid);
+  if (!u) return 0;
+  const myListings = LISTINGS.filter(l => l.seller_id === uid);
+  const activeRatio = myListings.length ? myListings.filter(l => l.status==='active').length / myListings.length : 0;
+  const myAccepted = OFFERS.filter(o => o.status==='accepted' && myListings.some(l=>l.id===o.listing_id)).length;
+  const verified = u.verified ? 1 : 0;
+  // Score 0-100
+  return Math.min(100, Math.round(40*verified + 30*activeRatio + 5*myAccepted + (u.listings||0)*2));
+}
+
 // Sahte 12 ay fiyat trendi üretici
 function priceHistory(l){
   const months = 12;

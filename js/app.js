@@ -13,18 +13,20 @@ const NAV = {
     { id:'discover',  label:'Keşfet',     icon:'ph-compass' },
     { id:'favorites', label:'Favoriler',  icon:'ph-heart' },
     { id:'messages',  label:'Mesajlar',   icon:'ph-chats' },
-    { id:'profile',   label:'Profil',     icon:'ph-user' },
+    { id:'history',   label:'Tekliflerim',icon:'ph-clipboard-text' },
   ],
   seller: [
     { id:'my-listings', label:'İlanlarım',  icon:'ph-stack' },
     { id:'wizard',      label:'Yeni İlan',  icon:'ph-plus-circle' },
     { id:'offers',      label:'Teklifler',  icon:'ph-currency-circle-dollar' },
     { id:'performance', label:'Performans', icon:'ph-chart-line-up' },
+    { id:'sales',       label:'Satışlar',   icon:'ph-handshake' },
   ],
   admin: [
-    { id:'approval',  label:'Onay',         icon:'ph-shield-check' },
-    { id:'users',     label:'Kullanıcılar', icon:'ph-users-three' },
-    { id:'reports',   label:'Raporlar',     icon:'ph-chart-pie' },
+    { id:'approval',   label:'Onay',         icon:'ph-shield-check' },
+    { id:'complaints', label:'Şikayetler',   icon:'ph-flag' },
+    { id:'users',      label:'Kullanıcılar', icon:'ph-users-three' },
+    { id:'reports',    label:'Raporlar',     icon:'ph-chart-pie' },
   ],
 };
 const DEFAULT_VIEW = { buyer:'discover', seller:'my-listings', admin:'approval' };
@@ -110,7 +112,9 @@ const Render = {
       </div>
     `).join('');
 
-    $('#headerAvatar').textContent = currentUser().avatar;
+    const ha = $('#headerAvatar');
+    ha.textContent = currentUser().avatar;
+    ha.setAttribute('data-grad', avatarGrad(currentUser().id));
 
     const hasUnread = (NOTIFICATIONS[State.role] || []).some(n => !n.read);
     $('#notifDot').style.display = hasUnread ? '' : 'none';
@@ -119,7 +123,7 @@ const Render = {
   },
 
   view(){
-    const validViews = NAV[State.role].map(n=>n.id).concat(['listing','thread','profile','compare','notifications','help']);
+    const validViews = NAV[State.role].map(n=>n.id).concat(['listing','thread','profile','compare','notifications','help','history','sales','complaints']);
     if (!validViews.includes(State.view)) {
       // Show 404 instead of silent redirect when hash invalid
       Render.shell();
@@ -157,6 +161,9 @@ const Render = {
       case 'compare':       main.innerHTML = views.compare();     break;
       case 'notifications': main.innerHTML = views.notifications(); break;
       case 'help':          main.innerHTML = views.help();          break;
+      case 'history':       main.innerHTML = views.history();       break;
+      case 'sales':         main.innerHTML = views.sales();         break;
+      case 'complaints':    main.innerHTML = views.complaints();    break;
     }
     // mobile FAB
     renderFab();
@@ -192,6 +199,12 @@ function rolLabel(r){ return { buyer:'Alıcı', seller:'Satıcı', admin:'Yönet
 function currentUser(){ return USERS.find(u => u.id === State.userId) || USERS[0]; }
 function listingById(id){ return LISTINGS.find(l => l.id === id); }
 function sellerName(id){ const u = USERS.find(u=>u.id===id); return u ? u.name : '—'; }
+function avatarGrad(id){
+  if (!id) return 1;
+  let h = 0;
+  for (let i=0; i<id.length; i++) h = (h*31 + id.charCodeAt(i)) >>> 0;
+  return (h % 7) + 1;
+}
 function isFav(listingId){ return (State.favs[State.userId] || []).includes(listingId); }
 function toggleFav(listingId){
   const arr = State.favs[State.userId] = State.favs[State.userId] || [];
@@ -513,7 +526,7 @@ views.listing = (id) => {
     <h3 class="mt-4 mb-3">Satıcı</h3>
     <div class="card">
       <div class="row gap-3">
-        <div class="avatar lg">${esc(seller?.avatar || '?')}</div>
+        <div class="avatar lg" data-grad="${avatarGrad(l.seller_id)}">${esc(seller?.avatar || '?')}</div>
         <div style="flex:1;">
           <div style="font-weight:600;">${esc(sellerName(l.seller_id))}</div>
           <div class="muted" style="font-size:var(--fs-xs);">
@@ -524,6 +537,16 @@ views.listing = (id) => {
         </div>
         ${State.role==='buyer' ? `<button class="btn sm" data-action="open-thread" data-listing="${l.id}" data-seller="${l.seller_id}"><i class="ph ph-chat-circle"></i></button>` : ''}
       </div>
+      ${(() => {
+        const ts = trustScore(l.seller_id);
+        const cls = ts>=70?'success':ts>=40?'warning':'danger';
+        return `
+          <div class="mt-3">
+            <div class="row between mb-1"><small class="muted">Güven Skoru</small><span class="badge ${cls}">${ts}/100</span></div>
+            <div class="ai-bar"><div class="ai-fill" style="left:0; right:${100-ts}%; background:var(--${cls});"></div></div>
+          </div>
+        `;
+      })()}
     </div>
 
     <h3 class="mt-4 mb-3">Sıkça Sorulanlar</h3>
@@ -687,6 +710,112 @@ views.compare = () => {
   `;
 };
 
+/* ----- BUYER: Purchase history ---------------------------------------- */
+views.history = () => {
+  const me = State.userId;
+  const myOffers = OFFERS.filter(o => o.buyer_id === me).sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  return `
+    <div class="page-header">
+      <h1>Tekliflerim & İşlem Geçmişi</h1>
+      <div class="subtitle">${myOffers.length} kayıt</div>
+    </div>
+    ${myOffers.length === 0 ? '<div class="empty"><i class="ph ph-clipboard-text"></i><h3>Henüz teklif vermedin</h3></div>' :
+      myOffers.map(o => {
+        const l = listingById(o.listing_id);
+        const cls = o.status==='accepted'?'success':o.status==='declined'?'danger':'warning';
+        const label = o.status==='accepted'?'Kabul':o.status==='declined'?'Red':o.status==='countered'?'Karşı geldi':'Bekliyor';
+        return `
+          <div class="offer-card mb-3">
+            <div class="row between">
+              <div>
+                <div style="font-weight:600;">${esc(o.listing_title)}</div>
+                <div class="muted" style="font-size:var(--fs-xs);">${esc(o.date)}</div>
+              </div>
+              <span class="badge ${cls}">${label}</span>
+            </div>
+            <div class="row between">
+              <div class="offer-amount">${fmtTLFull(o.amount)}</div>
+              ${l ? `<button class="btn sm" data-action="open-listing" data-id="${l.id}"><i class="ph ph-eye"></i></button>` : ''}
+            </div>
+            ${o.msg ? `<p style="margin:0; padding:var(--s-3); background:var(--surface-2); border-radius:var(--r-md); font-size:var(--fs-sm);">${esc(o.msg)}</p>` : ''}
+          </div>
+        `;
+      }).join('')
+    }
+  `;
+};
+
+/* ----- SELLER: Sales history ------------------------------------------ */
+views.sales = () => {
+  const me = State.userId;
+  const myL = LISTINGS.filter(l => l.seller_id === me).map(l => l.id);
+  const accepted = OFFERS.filter(o => o.status==='accepted' && myL.includes(o.listing_id));
+  const total = accepted.reduce((a,o)=>a+o.amount, 0);
+  return `
+    <div class="page-header">
+      <h1>Satış Geçmişi</h1>
+      <div class="subtitle">${accepted.length} işlem · toplam ${fmtTLFull(total)}</div>
+    </div>
+    ${accepted.length === 0 ? '<div class="empty"><i class="ph ph-handshake"></i><h3>Henüz kapanmış satış yok</h3></div>' :
+      `<div class="col gap-3">
+        ${accepted.map(o => `
+          <div class="offer-card">
+            <div class="row between">
+              <div>
+                <div style="font-weight:600;">${esc(o.listing_title)}</div>
+                <div class="muted" style="font-size:var(--fs-xs);">${esc(o.buyer_name)} · ${esc(o.date)}</div>
+              </div>
+              <span class="badge success">Kapandı</span>
+            </div>
+            <div class="row between">
+              <div class="offer-amount">${fmtTLFull(o.amount)}</div>
+              <button class="btn sm" data-action="open-listing" data-id="${o.listing_id}"><i class="ph ph-eye"></i></button>
+            </div>
+          </div>
+        `).join('')}
+      </div>`
+    }
+  `;
+};
+
+/* ----- ADMIN: Complaints queue ---------------------------------------- */
+views.complaints = () => {
+  return `
+    <div class="page-header">
+      <h1>Şikayet Kuyruğu</h1>
+      <div class="subtitle">${COMPLAINTS.filter(c=>c.status==='open').length} açık · ${COMPLAINTS.filter(c=>c.status==='resolved').length} çözüldü</div>
+    </div>
+    ${COMPLAINTS.length === 0 ? '<div class="empty"><i class="ph ph-flag"></i><h3>Şikayet yok</h3></div>' :
+      `<div class="col gap-3">
+        ${COMPLAINTS.map(c => {
+          const l = listingById(c.listing_id);
+          const reporter = USERS.find(u => u.id === c.reporter_id);
+          return `
+            <div class="approval-card">
+              <div class="row between">
+                <div>
+                  <div style="font-weight:600;">${esc(l?.title || c.listing_id)}</div>
+                  <div class="muted" style="font-size:var(--fs-xs);">Şikayet eden: ${esc(reporter?.name||'?')} · ${esc(c.date)}</div>
+                </div>
+                <span class="badge ${c.status==='open'?'warning':'success'}">${c.status==='open'?'Açık':'Çözüldü'}</span>
+              </div>
+              <div class="row gap-2"><span class="badge"><i class="ph ph-flag"></i> ${esc(c.reason)}</span></div>
+              <p style="margin:0; padding:var(--s-3); background:var(--surface-2); border-radius:var(--r-md); font-size:var(--fs-sm);">${esc(c.note)}</p>
+              ${c.status==='open' ? `
+                <div class="offer-actions">
+                  <button class="btn success" data-action="complaint-resolve" data-id="${c.id}"><i class="ph ph-check"></i> Çöz</button>
+                  <button class="btn danger" data-action="complaint-pulldown" data-id="${c.id}"><i class="ph ph-trash"></i> İlanı Kaldır</button>
+                  ${l ? `<button class="btn" data-action="open-listing" data-id="${l.id}"><i class="ph ph-eye"></i> İlanı Gör</button>` : ''}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>`
+    }
+  `;
+};
+
 /* ----- Help ------------------------------------------------------------ */
 views.help = () => {
   const sections = [
@@ -794,7 +923,7 @@ views.messages = () => {
             const last = MESSAGES.filter(m=>m.thread===t.id).slice(-1)[0];
             return `
               <div class="thread-item ${unread>0?'unread':''}" data-action="open-thread-id" data-id="${t.id}" tabindex="0" role="button">
-                <div class="avatar">${esc(other?.avatar || '?')}</div>
+                <div class="avatar" data-grad="${avatarGrad(other?.id)}">${esc(other?.avatar || '?')}</div>
                 <div class="thread-info">
                   <div class="thread-title">${esc(other?.name || '?')} · <span class="muted" style="font-weight:400;">${esc(l?.title || '')}</span></div>
                   <div class="thread-text">${esc(last?.text || '')}</div>
@@ -828,7 +957,7 @@ views.thread = (threadId) => {
     <div class="chat-window">
       <div class="chat-header">
         <button class="btn ghost sm" data-action="back" aria-label="Geri"><i class="ph ph-arrow-left"></i></button>
-        <div class="avatar">${esc(other?.avatar || '?')}</div>
+        <div class="avatar" data-grad="${avatarGrad(other?.id)}">${esc(other?.avatar || '?')}</div>
         <div style="flex:1;min-width:0;">
           <div style="font-weight:600;">${esc(other?.name || '?')}</div>
           <div class="muted truncate" style="font-size:var(--fs-xs);">${esc(l?.title || '')}</div>
@@ -1475,7 +1604,7 @@ views.users = () => {
       ${users.length===0 ? `<div class="empty"><i class="ph ph-users-three"></i><h3>Kullanıcı yok</h3></div>` :
         users.map(u => `
           <div class="user-row">
-            <div class="avatar">${esc(u.avatar)}</div>
+            <div class="avatar" data-grad="${avatarGrad(u.id)}">${esc(u.avatar)}</div>
             <div>
               <div style="font-weight:600;">${esc(u.name)} ${u.verified ? '<i class="ph ph-seal-check" style="color:var(--success);"></i>' : ''}</div>
               <div class="user-meta">${esc(u.email)} · ${esc(u.phone || '—')}</div>
@@ -1598,7 +1727,7 @@ views.profile = () => {
     <div class="page-header"><h1>Profil</h1></div>
     <div class="card">
       <div class="row gap-3 mb-3">
-        <div class="avatar lg">${esc(u.avatar)}</div>
+        <div class="avatar lg" data-grad="${avatarGrad(u.id)}">${esc(u.avatar)}</div>
         <div>
           <h3>${esc(u.name)} ${u.verified ? '<i class="ph ph-seal-check" style="color:var(--success);"></i>' : ''}</h3>
           <div class="muted">${esc(u.email)}</div>
@@ -1963,6 +2092,22 @@ document.body.addEventListener('click', e => {
       State.introShown = true;
       $('#introModal')?.remove();
       break;
+    case 'complaint-resolve': {
+      const c = COMPLAINTS.find(x => x.id === target.dataset.id);
+      if (c){ c.status='resolved'; Render.view(); Toast.show('Şikayet çözüldü', 'success'); }
+      break;
+    }
+    case 'complaint-pulldown': {
+      const c = COMPLAINTS.find(x => x.id === target.dataset.id);
+      if (c){
+        const l = listingById(c.listing_id);
+        if (l){ l.status='rejected'; }
+        c.status='resolved';
+        Render.view();
+        Toast.show('İlan yayından kaldırıldı', 'danger', 'ph-trash');
+      }
+      break;
+    }
     case 'delete-listing': {
       const id = target.dataset.id;
       const idx = LISTINGS.findIndex(l=>l.id===id);
@@ -2238,6 +2383,7 @@ document.body.addEventListener('click', e => {
     }
     case 'accept-consent':
       State.consent = true;
+      document.body.classList.remove('has-consent');
       $('#consentBar')?.remove();
       Toast.show('Çerez tercihleri kaydedildi', '', 'ph-check-circle');
       break;
@@ -2421,6 +2567,7 @@ document.addEventListener('click', e => {
 /* KVKK / consent banner */
 function showConsentBanner(){
   if (State.consent) return;
+  document.body.classList.add('has-consent');
   const bar = document.createElement('div');
   bar.id = 'consentBar';
   bar.className = 'consent-bar';

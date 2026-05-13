@@ -226,6 +226,13 @@ hr{ border:0; border-top:1px solid var(--border); margin:var(--s-4) 0; }
   font-weight:600; font-size:var(--fs-sm);
   flex-shrink:0;
 }
+.avatar[data-grad="1"]{ background:linear-gradient(135deg, #6366f1, #818cf8); }
+.avatar[data-grad="2"]{ background:linear-gradient(135deg, #0ea5e9, #38bdf8); }
+.avatar[data-grad="3"]{ background:linear-gradient(135deg, #10b981, #34d399); }
+.avatar[data-grad="4"]{ background:linear-gradient(135deg, #f59e0b, #fbbf24); }
+.avatar[data-grad="5"]{ background:linear-gradient(135deg, #ec4899, #f472b6); }
+.avatar[data-grad="6"]{ background:linear-gradient(135deg, #8b5cf6, #a78bfa); }
+.avatar[data-grad="7"]{ background:linear-gradient(135deg, #14b8a6, #2dd4bf); }
 .avatar.sm{ width:28px; height:28px; font-size:var(--fs-xs); }
 .avatar.lg{ width:48px; height:48px; font-size:var(--fs-md); }
 
@@ -929,7 +936,7 @@ button:focus-visible, .chip:focus-visible, .nav-item:focus-visible, .listing-car
   position:fixed;
   right:var(--s-4);
   bottom:calc(var(--bottom-nav-h) + var(--s-3) + env(safe-area-inset-bottom));
-  z-index:30;
+  z-index:25;
   display:inline-flex; align-items:center; gap:var(--s-2);
   padding:var(--s-3) var(--s-4);
   border-radius:var(--r-pill);
@@ -1035,6 +1042,9 @@ button:focus-visible, .chip:focus-visible, .nav-item:focus-visible, .listing-car
 .thumb-x:hover{ background:rgba(0,0,0,0.85); }
 
 /* --- KVKK consent banner ----------------------------------------- */
+body.has-consent .fab{ bottom:calc(var(--bottom-nav-h) + 130px + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px){ body.has-consent .fab{ bottom:140px; } }
+
 .consent-bar{
   position:fixed; left:var(--s-3); right:var(--s-3);
   bottom:calc(var(--bottom-nav-h) + var(--s-3) + env(safe-area-inset-bottom));
