@@ -375,6 +375,10 @@ const State = {
   globalSearch: '',
   msgSearch: '',               // thread içi arama
   selectedPerfListing: '',     // performans: ilan başı seçili
+  savedSearches: [],           // [{ id, label, filters }]
+  recent: [],                  // listing id'leri (son görüntülenen, max 8)
+  consent: false,              // KVKK banner kabul
+  wizardPhotos: [],            // [{label, color}] thumbs
 };
 
 // Required wizard fields per step (for validation)

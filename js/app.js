@@ -55,7 +55,14 @@ const Router = {
   go(view, params={}){
     State.view = view;
     State.params = params;
-    if (view === 'listing') State.photoIdx = 0;
+    if (view === 'listing'){
+      State.photoIdx = 0;
+      // recent track
+      const id = params.id;
+      if (id){
+        State.recent = [id, ...State.recent.filter(x=>x!==id)].slice(0,8);
+      }
+    }
     const h = '#' + view + (params.id ? '/' + params.id : '');
     if (location.hash !== h) location.hash = h;
     Render.view();
@@ -297,6 +304,33 @@ views.discover = () => {
 
     ${aiInsightsCard()}
 
+    ${State.savedSearches.length ? `
+      <div class="mb-3">
+        <div class="row between mb-2">
+          <small class="muted" style="text-transform:uppercase;letter-spacing:0.06em;">Kayıtlı Aramalar</small>
+        </div>
+        <div class="chips scroll">
+          ${State.savedSearches.map(s => `
+            <button class="chip" data-action="apply-saved" data-id="${s.id}"><i class="ph ph-bookmark-simple"></i> ${esc(s.label)}</button>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    ${State.recent.length ? `
+      <div class="mb-3">
+        <div class="row between mb-2">
+          <small class="muted" style="text-transform:uppercase;letter-spacing:0.06em;">Son Görüntülenenler</small>
+        </div>
+        <div class="chips scroll">
+          ${State.recent.map(id => {
+            const l = listingById(id); if (!l) return '';
+            return `<button class="chip" data-action="open-listing" data-id="${l.id}"><i class="ph ph-clock"></i> ${esc(l.ilce)} · ${fmtTL(l.fiyat)}</button>`;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
+
     <div class="input mb-3">
       <i class="ph ph-magnifying-glass"></i>
       <input id="aiSearch" type="text" placeholder="AI ile ara: 'İstanbul konut 5M altı temiz tapu'" value="${esc(f.q)}" aria-label="AI arama">
@@ -317,8 +351,11 @@ views.discover = () => {
       </div>
     ` : ''}
 
-    <div class="row between gap-2 mb-2">
-      <button class="btn sm" data-action="open-filter-sheet"><i class="ph ph-funnel"></i> Detaylı Filtre${activeCount?` · ${activeCount}`:''}</button>
+    <div class="row between gap-2 mb-2" style="flex-wrap:wrap;">
+      <div class="row gap-2">
+        <button class="btn sm" data-action="open-filter-sheet"><i class="ph ph-funnel"></i> Detaylı Filtre${activeCount?` · ${activeCount}`:''}</button>
+        ${activeCount || f.q ? `<button class="btn sm ghost" data-action="save-search"><i class="ph ph-bookmark-simple-plus"></i> Aramayı Kaydet</button>` : ''}
+      </div>
       <div class="row gap-2">
         <select class="chip" data-action="set-sort" aria-label="Sıralama">
           <option value="newest"     ${f.sort==='newest'?'selected':''}>En Yeni</option>
@@ -423,6 +460,10 @@ views.listing = (id) => {
       <div class="row between">
         <span class="muted" style="font-size:var(--fs-xs);">Liste fiyatı bantın %${pricePos.toFixed(0)} konumunda</span>
         <span class="ai-trend"><i class="ph ph-trend-up"></i> Yıllık +%${l.ai_trend}</span>
+      </div>
+      <div class="row gap-2 mt-3" style="flex-wrap:wrap;">
+        <button class="btn sm" data-action="ai-valuation-explain" data-id="${l.id}"><i class="ph ph-question"></i> Neden bu fiyat?</button>
+        <button class="btn sm" data-action="mortgage-calc" data-id="${l.id}"><i class="ph ph-calculator"></i> Kredi Hesapla</button>
       </div>
     </div>
 
@@ -970,8 +1011,18 @@ views.wizard = () => {
         </div>
       </div>
       <div class="field">
-        <label>Fotoğraflar</label>
+        <label>Fotoğraflar (${State.wizardPhotos.length})</label>
         <div class="upload-zone" data-action="photo-mock"><i class="ph ph-file-arrow-up"></i> <span>Fotoğraf ekle (demo)</span></div>
+        ${State.wizardPhotos.length ? `
+          <div class="thumbs mt-2">
+            ${State.wizardPhotos.map((p,i) => `
+              <div class="thumb" style="background:linear-gradient(135deg, ${p.color}, ${shade(p.color,25)})">
+                <span class="thumb-label">${esc(p.label)}</span>
+                <button class="thumb-x" data-action="thumb-remove" data-i="${i}" aria-label="Sil"><i class="ph ph-x"></i></button>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -1339,9 +1390,12 @@ views.users = () => {
   const users = f==='all' ? USERS : USERS.filter(u => u.role === f);
 
   return `
-    <div class="page-header">
-      <h1>Kullanıcılar</h1>
-      <div class="subtitle">${USERS.length} kayıtlı kullanıcı</div>
+    <div class="row between mb-3" style="flex-wrap:wrap; gap:var(--s-2);">
+      <div class="page-header" style="margin:0;">
+        <h1>Kullanıcılar</h1>
+        <div class="subtitle">${USERS.length} kayıtlı kullanıcı</div>
+      </div>
+      <button class="btn primary" data-action="admin-user-new"><i class="ph ph-user-plus"></i> Yeni Kullanıcı</button>
     </div>
 
     <div class="chips mb-3" role="tablist">
@@ -1364,7 +1418,8 @@ views.users = () => {
             <span class="badge ${u.role==='admin'?'primary':u.role==='seller'?'success':''}">${rolLabel(u.role)}</span>
             <span class="badge hide-mobile">${esc(u.badge || '—')}</span>
             <span class="badge hide-mobile">${esc(u.joined)}</span>
-            <button class="icon-btn" data-action="user-action" data-id="${u.id}" title="İşlemler" aria-label="İşlemler"><i class="ph ph-dots-three-vertical"></i></button>
+            <button class="icon-btn" data-action="user-toggle-verified" data-id="${u.id}" title="${u.verified?'Doğrulamayı kaldır':'Doğrula'}" aria-label="Doğrula"><i class="ph ${u.verified?'ph-seal-check':'ph-seal-question'}"></i></button>
+            <button class="icon-btn" data-action="user-delete" data-id="${u.id}" title="Sil" aria-label="Sil"><i class="ph ph-trash"></i></button>
           </div>
         `).join('')
       }
@@ -1974,9 +2029,159 @@ document.body.addEventListener('click', e => {
     case 'settings-mock':
       Toast.show('Demo modu — bu ekran henüz aktif değil', '', 'ph-info');
       break;
-    case 'photo-mock':
-      Toast.show('Foto yükleme demo modunda kapalı', '', 'ph-image');
+    case 'photo-mock': {
+      const colors = ['#1a3a5c','#2a1a4a','#1a4a2a','#4a2a1a','#1a4a3a','#3a1a4a','#1a3a4a','#1a4a4a'];
+      const c = colors[Math.floor(Math.random()*colors.length)];
+      State.wizardPhotos.push({ color:c, label:`Foto ${State.wizardPhotos.length+1}` });
+      Render.view();
+      Toast.show(`${State.wizardPhotos.length}. fotoğraf eklendi (demo)`, '', 'ph-image');
       break;
+    }
+    case 'thumb-remove':
+      State.wizardPhotos.splice(+target.dataset.i, 1);
+      Render.view();
+      break;
+    case 'save-search': {
+      const f = State.filters;
+      const parts = [f.q, f.il, f.imar, f.tkgm, f.fiyat_max?'max '+fmtTL(f.fiyat_max):'', f.alan_min?'min '+f.alan_min+'m²':''].filter(Boolean);
+      const label = parts.join(' · ') || 'Arama';
+      const id = 'S' + (State.savedSearches.length+1);
+      State.savedSearches.unshift({ id, label, filters:{...f} });
+      State.savedSearches = State.savedSearches.slice(0,5);
+      Render.view();
+      Toast.show('Arama kaydedildi', 'success', 'ph-bookmark-simple-plus');
+      break;
+    }
+    case 'apply-saved': {
+      const s = State.savedSearches.find(x => x.id === target.dataset.id);
+      if (s){ State.filters = {...s.filters}; Render.view(); Toast.show('Arama uygulandı', '', 'ph-bookmark-simple'); }
+      break;
+    }
+    case 'ai-valuation-explain': {
+      const l = listingById(target.dataset.id);
+      Sheet.open(`
+        <h3>Neden bu fiyat?</h3>
+        <p class="muted">${esc(l.title)}</p>
+        <div class="ai-card mt-2 mb-3">
+          <div class="ai-label"><i class="ph ph-sparkle"></i> AI Açıklama</div>
+          <div class="col gap-2 mt-2" style="font-size:var(--fs-sm);">
+            <div class="row gap-2"><i class="ph ph-map-pin" style="color:var(--primary);"></i><span><strong>${esc(l.il)}</strong> bölgesinde ortalama m² fiyatı: <strong>${fmt(Math.round(l.fiyat_m2/(1+l.ai_trend/100)))} ₺</strong></span></div>
+            <div class="row gap-2"><i class="ph ph-buildings" style="color:var(--primary);"></i><span>${esc(l.imar)} imar, ${l.emsal>0?'E:'+l.emsal+' emsal':'imarsız'} — taban değer çarpanı uygulandı.</span></div>
+            <div class="row gap-2"><i class="ph ph-shield-check" style="color:var(--primary);"></i><span>Tapu: ${esc(l.tapu)}, TKGM: ${esc(l.tkgm)} — risk-uyarlı düzeltme.</span></div>
+            <div class="row gap-2"><i class="ph ph-trend-up" style="color:var(--success);"></i><span>Son 12 ayda bölge fiyat trendi: <strong>+%${l.ai_trend}</strong></span></div>
+          </div>
+        </div>
+        <div class="card" style="background:var(--surface-2);">
+          <div class="row between"><span class="muted">AI alt bant</span><strong>${fmtTLFull(l.ai_min)}</strong></div>
+          <div class="row between"><span class="muted">AI üst bant</span><strong>${fmtTLFull(l.ai_max)}</strong></div>
+          <div class="row between"><span class="muted">Liste fiyatı</span><strong>${fmtTLFull(l.fiyat)}</strong></div>
+        </div>
+        <button class="btn block mt-3" data-action="sheet-close">Anladım</button>
+      `);
+      break;
+    }
+    case 'mortgage-calc': {
+      const l = listingById(target.dataset.id);
+      const def = Math.round(l.fiyat * 0.3);
+      Sheet.open(`
+        <h3>Kredi Hesaplayıcı</h3>
+        <p class="muted">${esc(l.title)} · ${fmtTLFull(l.fiyat)}</p>
+        <div class="field-row cols-2">
+          <div class="field"><label>Peşinat (₺)</label>
+            <div class="input"><i class="ph ph-currency-circle-dollar"></i><input id="mc-down" type="number" value="${def}" min="0"></div>
+          </div>
+          <div class="field"><label>Vade (ay)</label>
+            <div class="input"><i class="ph ph-clock"></i><input id="mc-term" type="number" value="120" min="1"></div>
+          </div>
+        </div>
+        <div class="field-row cols-2">
+          <div class="field"><label>Faiz (%/ay)</label>
+            <div class="input"><i class="ph ph-percent"></i><input id="mc-rate" type="number" value="3.5" step="0.1" min="0"></div>
+          </div>
+          <div class="field"><label>Toplam Borç (₺)</label>
+            <div class="input"><i class="ph ph-calculator"></i><input id="mc-loan" type="number" value="${l.fiyat - def}" min="0" readonly></div>
+          </div>
+        </div>
+        <div id="mc-result" class="ai-card mt-3"></div>
+        <div class="row gap-2 mt-3">
+          <button class="btn" data-action="sheet-close">Kapat</button>
+          <button class="btn primary" style="flex:1;" data-action="mc-calc"><i class="ph ph-equals"></i> Hesapla</button>
+        </div>
+      `);
+      // initial compute
+      setTimeout(()=> { document.querySelector('[data-action="mc-calc"]')?.click(); }, 0);
+      break;
+    }
+    case 'mc-calc': {
+      const l = State.params.id ? listingById(State.params.id) : null;
+      const down = parseFloat($('#mc-down').value||'0');
+      const term = parseInt($('#mc-term').value||'0');
+      const rate = parseFloat($('#mc-rate').value||'0')/100;
+      const loan = Math.max(0, (l?.fiyat||0) - down);
+      $('#mc-loan').value = loan;
+      let m = 0, total = 0;
+      if (term > 0 && loan > 0){
+        if (rate > 0){
+          m = loan * (rate * Math.pow(1+rate, term)) / (Math.pow(1+rate, term) - 1);
+        } else m = loan / term;
+        total = m * term;
+      }
+      $('#mc-result').innerHTML = `
+        <div class="ai-label"><i class="ph ph-sparkle"></i> Sonuç</div>
+        <div class="row between mt-2"><span class="muted">Aylık ödeme</span><strong>${fmtTLFull(Math.round(m))}</strong></div>
+        <div class="row between"><span class="muted">Toplam geri ödeme</span><strong>${fmtTLFull(Math.round(total))}</strong></div>
+        <div class="row between"><span class="muted">Toplam faiz</span><strong>${fmtTLFull(Math.round(total - loan))}</strong></div>
+      `;
+      break;
+    }
+    case 'accept-consent':
+      State.consent = true;
+      $('#consentBar')?.remove();
+      Toast.show('Çerez tercihleri kaydedildi', '', 'ph-check-circle');
+      break;
+    case 'admin-user-new':
+      Sheet.open(`
+        <h3>Yeni Kullanıcı</h3>
+        <div class="field"><label>Ad Soyad</label><div class="input"><i class="ph ph-user"></i><input id="nu-name" placeholder="Adı"></div></div>
+        <div class="field"><label>E-posta</label><div class="input"><i class="ph ph-envelope"></i><input id="nu-email" type="email" placeholder="ornek@email.com"></div></div>
+        <div class="field"><label>Rol</label>
+          <div class="input"><i class="ph ph-user-circle-gear"></i>
+            <select id="nu-role">
+              <option value="buyer">Alıcı</option>
+              <option value="seller">Satıcı</option>
+              <option value="admin">Yönetici</option>
+            </select>
+          </div>
+        </div>
+        <div class="row gap-2 mt-3">
+          <button class="btn" data-action="sheet-close">İptal</button>
+          <button class="btn primary" style="flex:1;" data-action="nu-save"><i class="ph ph-check"></i> Oluştur</button>
+        </div>
+      `);
+      break;
+    case 'nu-save': {
+      const name  = $('#nu-name').value.trim();
+      const email = $('#nu-email').value.trim();
+      const role  = $('#nu-role').value;
+      if (!name || !email){ Toast.show('Tüm alanları doldurun', 'danger', 'ph-warning'); break; }
+      const id = 'U' + String(USERS.length + 1).padStart(3,'0');
+      USERS.push({ id, role, name, email, avatar:name.split(' ').map(p=>p[0]||'').join('').slice(0,2).toUpperCase(), phone:'', verified:false, joined:new Date().toISOString().slice(0,10) });
+      Sheet.close();
+      Render.view();
+      Toast.show(`Kullanıcı eklendi: ${name}`, 'success', 'ph-user-plus');
+      break;
+    }
+    case 'user-delete': {
+      const id = target.dataset.id;
+      const i = USERS.findIndex(u => u.id === id);
+      if (i>=0){ USERS.splice(i,1); Render.view(); Toast.show('Kullanıcı silindi', 'danger', 'ph-trash'); }
+      break;
+    }
+    case 'user-toggle-verified': {
+      const u = USERS.find(x => x.id === target.dataset.id);
+      if (u){ u.verified = !u.verified; Render.view(); Toast.show(u.verified ? 'Doğrulandı' : 'Doğrulama kaldırıldı', '', 'ph-seal-check'); }
+      break;
+    }
     case 'set-sort':
       // handled by change listener
       break;
@@ -2111,10 +2316,33 @@ document.addEventListener('click', e => {
   }
 });
 
+/* KVKK / consent banner */
+function showConsentBanner(){
+  if (State.consent) return;
+  const bar = document.createElement('div');
+  bar.id = 'consentBar';
+  bar.className = 'consent-bar';
+  bar.innerHTML = `
+    <div class="row gap-3" style="flex-wrap:wrap;">
+      <i class="ph ph-cookie" style="font-size:1.4rem; color:var(--primary);"></i>
+      <div style="flex:1; min-width:220px;">
+        <strong>Çerez & KVKK</strong>
+        <div class="muted" style="font-size:var(--fs-xs);">LandX, deneyimi iyileştirmek için çerez kullanır. Detaylar için Profil → KVKK.</div>
+      </div>
+      <div class="row gap-2">
+        <button class="btn sm ghost" data-action="accept-consent">Sadece Gerekli</button>
+        <button class="btn sm primary" data-action="accept-consent">Tümünü Kabul Et</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(bar);
+}
+
 /* Initial route */
 (function init(){
   const r = Router.fromHash();
   if (r){ State.view = r.view; State.params = r.params; }
   else State.view = DEFAULT_VIEW[State.role];
   Render.view();
+  showConsentBanner();
 })();
