@@ -98,8 +98,9 @@ export function TopBar({ variant = 'public', onOpenSidebar }: Props) {
           {/* Theme */}
           <button
             onClick={() => ui.setTheme(ui.theme === 'dark' ? 'light' : 'dark')}
-            className="inline-flex items-center justify-center min-w-11 min-h-11 rounded-r-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="group inline-flex items-center justify-center min-w-11 min-h-11 rounded-r-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform active:scale-90"
             aria-label="Temayı değiştir"
+            title={ui.theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç'}
           >
             {ui.theme === 'dark' ? <Sun size={20} weight="fill" /> : <Moon size={20} weight="fill" />}
           </button>
