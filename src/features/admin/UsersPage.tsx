@@ -9,7 +9,20 @@ import { Card } from '@/components/ui/Card';
 import type { User, Role, KycLevel } from '@/types/domain';
 import { formatRelTime } from '@/lib/utils/format';
 import { useAuth } from '@/store/auth';
-import { PencilSimple } from '@phosphor-icons/react';
+import { PencilSimple, Plus } from '@phosphor-icons/react';
+import { nanoid } from 'nanoid';
+
+function emptyUser(): User {
+  const id = `u-new-${nanoid(4)}`;
+  return {
+    id, principalType: 'individual', displayName: '', email: '', phone: '+90', fullName: '',
+    avatarUrl: `https://i.pravatar.cc/240?u=${id}`, locale: 'tr', timezone: 'Europe/Istanbul',
+    kycLevel: 'none', status: 'active', roles: ['buyer'],
+    createdAt: new Date().toISOString(), lastSeenAt: new Date().toISOString(),
+    preferences: { notifyEmail: true, notifySms: false, notifyPush: true, aiAssistantDefault: 'auto', theme: 'system', locale: 'tr' },
+    rating: 0, vipScore: 0
+  };
+}
 
 const ROLES: Role[] = ['buyer', 'seller', 'moderator', 'admin'];
 const KYCS: KycLevel[] = ['none', 'phone', 'email', 'identity', 'full'];
@@ -61,7 +74,9 @@ export default function UsersPage() {
 
   return (
     <div>
-      <SectionHeading title="Kullanıcılar" description={`${data.users.length} kayıt`} />
+      <SectionHeading title="Kullanıcılar" description={`${data.users.length} kayıt`} actions={
+        <Button iconLeft={<Plus size={14} />} onClick={() => setEdit(emptyUser())}>Yeni kullanıcı</Button>
+      } />
       <DataTable
         data={data.users}
         columns={columns}
