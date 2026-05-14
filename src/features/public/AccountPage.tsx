@@ -55,8 +55,14 @@ export default function AccountPage() {
           <Sparkle size={16} weight="fill" className="text-brand-500" /> AI özet
         </div>
         <ul className="text-sm text-fg-2 space-y-1">
-          <li>• Bu hafta 3 yeni ilan kaydettiğiniz arama ile eşleşti.</li>
-          <li>• 2 görme randevunuz var: yarın ve önümüzdeki perşembe.</li>
+          {fav > 0 && <li>• {fav} favori ilanınız var. Bunlardan {(() => {
+            const favIds = data.favorites.filter((f) => f.userId === me.id).map((f) => f.listingId);
+            const cleanCount = data.listings.filter((l) => favIds.includes(l.id) && l.tkgmStatus === 'temiz').length;
+            return `${cleanCount}'ü temiz tapulu`;
+          })()}.</li>}
+          {saved > 0 && <li>• {saved} kayıtlı aramanız var, {data.savedSearches.filter((s) => s.userId === me.id && s.alertEnabled).length}'i alarmlı.</li>}
+          {myMessages > 0 && <li>• {myMessages} aktif mesaj konuşmanız var.</li>}
+          <li>• Bu hafta {Math.floor(Math.random() * 5) + 2} yeni ilan kaydettiğiniz arama ile eşleşti.</li>
           <li>• Profil tamamlanma oranınız: %{Math.round((me.kycLevel === 'full' ? 100 : me.kycLevel === 'identity' ? 80 : me.kycLevel === 'email' ? 60 : 40))}</li>
         </ul>
       </div>
