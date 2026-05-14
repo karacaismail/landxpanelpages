@@ -39,6 +39,8 @@ const ADMIN_ITEMS: Item[] = [
   { to: '/admin/reports', label: 'reports', Icon: PresentationChart },
   { to: '/admin/tkgm', label: 'tkgm', Icon: Buildings },
   { to: '/admin/modules', label: 'modules', Icon: Stack },
+  { to: '/admin/doctype-studio', label: 'doctypeStudio', Icon: Stack },
+  { to: '/admin/workflow-designer', label: 'workflowDesigner', Icon: FlowArrow },
   { to: '/admin/notifications-templates', label: 'notifications', Icon: BellSimple },
   { to: '/admin/compliance', label: 'compliance', Icon: FileText },
   { to: '/admin/plugins', label: 'plugins', Icon: PuzzlePiece },

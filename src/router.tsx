@@ -77,6 +77,8 @@ const PluginsPage        = lazy_(() => import('@/features/admin/PluginsPage'));
 const AiOpsPage          = lazy_(() => import('@/features/admin/AiOpsPage'));
 const AgentRegistryPage  = lazy_(() => import('@/features/admin/AgentRegistryPage'));
 const ApiExplorerPage    = lazy_(() => import('@/features/admin/ApiExplorerPage'));
+const DocTypeStudioPage  = lazy_(() => import('@/features/admin/DocTypeStudioPage'));
+const WorkflowDesignerPage = lazy_(() => import('@/features/admin/WorkflowDesignerPage'));
 
 const NotFoundPage       = lazy_(() => import('@/features/public/NotFoundPage'));
 
@@ -157,7 +159,9 @@ export const router = createHashRouter([
       { path: 'ai-ops/:section', element: withSuspense(<AiOpsPage />) },
       { path: 'agent-registry', element: withSuspense(<AgentRegistryPage />) },
       { path: 'agent-registry/:section', element: withSuspense(<AgentRegistryPage />) },
-      { path: 'api-explorer', element: withSuspense(<ApiExplorerPage />) }
+      { path: 'api-explorer', element: withSuspense(<ApiExplorerPage />) },
+      { path: 'doctype-studio', element: withSuspense(<DocTypeStudioPage />) },
+      { path: 'workflow-designer', element: withSuspense(<WorkflowDesignerPage />) }
     ]
   },
   { path: '*', element: <Navigate to="/" replace /> }

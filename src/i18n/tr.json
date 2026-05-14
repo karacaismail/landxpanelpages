@@ -34,6 +34,8 @@
     "agentRegistry": "Agent Registry",
     "aiOps": "AI Ops",
     "apiExplorer": "API Explorer",
+    "doctypeStudio": "DocType Studio",
+    "workflowDesigner": "Workflow Designer",
     "tenant": "Tenant Yönetimi",
     "notifications": "Bildirimler",
     "settings": "Ayarlar",
