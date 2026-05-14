@@ -45,13 +45,18 @@ export function TopBar({ variant = 'public', onOpenSidebar }: Props) {
           </button>
         )}
 
-        {/* Brand */}
+        {/* Brand + Tenant */}
         <Link to="/" className="inline-flex items-center gap-2 font-semibold text-fg-1 hover:text-brand-600 transition-colors">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-r-2 bg-brand-500 text-white">
             <MapTrifold weight="fill" size={18} />
           </span>
           <span className="text-base">LandX</span>
         </Link>
+        {variant === 'panel' && (
+          <span title="Tenant izolasyon — I05" className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-fg-2 border border-slate-200 dark:border-slate-700">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> LandX Demo
+          </span>
+        )}
 
         {/* AI komut çubuğu (orta) */}
         <form onSubmit={go} className="flex-1 hidden md:flex max-w-2xl mx-auto">

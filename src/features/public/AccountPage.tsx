@@ -29,6 +29,7 @@ export default function AccountPage() {
     { to: '/account/offers', label: t('nav.offers'), Icon: Briefcase, count: myOffers },
     { to: '/account/viewings', label: t('nav.viewings'), Icon: Calendar, count: myViewings },
     { to: '/account/profile', label: t('nav.profile'), Icon: IdentificationCard },
+    { to: '/account/ai-history', label: 'AI Geçmişi', Icon: Sparkle },
     { to: '/notifications', label: t('nav.notifications'), Icon: BellRinging }
   ];
 

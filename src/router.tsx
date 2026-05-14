@@ -44,6 +44,7 @@ const MessagesPage       = lazy_(() => import('@/features/public/MessagesPage'))
 const OffersPage         = lazy_(() => import('@/features/public/OffersPage'));
 const ViewingsPage       = lazy_(() => import('@/features/public/ViewingsPage'));
 const ProfilePage        = lazy_(() => import('@/features/public/ProfilePage'));
+const AiHistoryPage      = lazy_(() => import('@/features/public/AiHistoryPage'));
 const NotificationsPage  = lazy_(() => import('@/features/public/NotificationsPage'));
 const LegalPage          = lazy_(() => import('@/features/public/LegalPage'));
 const HelpPage           = lazy_(() => import('@/features/public/HelpPage'));
@@ -100,7 +101,8 @@ export const router = createHashRouter([
           { path: 'messages', element: withSuspense(<MessagesPage />) },
           { path: 'offers', element: withSuspense(<OffersPage />) },
           { path: 'viewings', element: withSuspense(<ViewingsPage />) },
-          { path: 'profile', element: withSuspense(<ProfilePage />) }
+          { path: 'profile', element: withSuspense(<ProfilePage />) },
+          { path: 'ai-history', element: withSuspense(<AiHistoryPage />) }
         ]
       },
       { path: '/notifications', element: <RouteGate>{withSuspense(<NotificationsPage />)}</RouteGate> }
