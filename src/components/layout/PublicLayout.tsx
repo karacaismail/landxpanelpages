@@ -10,6 +10,7 @@ import { OnboardingBanner } from '@/components/ui/OnboardingBanner';
 import { CompareBar } from './CompareBar';
 import { Breadcrumb } from './Breadcrumb';
 import { LiveRegions } from './LiveRegions';
+import { ToastHost } from './ToastHost';
 
 export function PublicLayout() {
   const loc = useLocation();
@@ -34,6 +35,7 @@ export function PublicLayout() {
       <NotificationsDrawer />
       <CompareBar />
       <LiveRegions />
+      <ToastHost />
     </div>
   );
 }

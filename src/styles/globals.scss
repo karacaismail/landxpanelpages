@@ -77,3 +77,8 @@ input, textarea, select {
   .rounded-r-3, .rounded-r-2, .rounded-r-4 { border-radius: 0 !important; }
   img { max-width: 100% !important; }
 }
+
+@keyframes slide-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
