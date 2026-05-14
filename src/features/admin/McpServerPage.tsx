@@ -249,37 +249,105 @@ function ClientDetail({ client }: { client: McpClient }) {
 }
 
 function ToolsCatalog() {
+  // Excel'deki 45 MCP-Tool marked field'tan türetilen tüm tool kataloğu
   const TOOLS = [
-    { name: 'landx.listing.list', desc: 'İlan listesi', count: 8240 },
-    { name: 'landx.listing.search', desc: 'NL arama (BM25 + vector)', count: 4180 },
-    { name: 'landx.listing.create', desc: 'Yeni ilan oluştur', count: 142 },
-    { name: 'landx.ai.value_estimate', desc: 'AI değerleme', count: 1820 },
-    { name: 'landx.ai.risk_score', desc: 'AI risk skoru', count: 920 },
-    { name: 'landx.tkgm.verify', desc: 'TKGM parsel doğrulama', count: 412 },
-    { name: 'landx.eca.trigger', desc: 'ECA kural tetikleme', count: 1240 },
-    { name: 'landx.notify.user', desc: 'Kullanıcıya bildirim', count: 5840 },
-    { name: 'landx.audit.write', desc: 'Audit log yazma', count: 12420 },
-    { name: 'landx.vector.search', desc: 'Semantic similarity', count: 612 }
+    // K - Kernel
+    { mod: 'K01', name: 'landx.plugin.list', desc: 'Plugin kataloğu', count: 1240, sig: 'tenant_id → Plugin[]' },
+    { mod: 'K01', name: 'landx.plugin.capabilities', desc: 'Plugin\'in beyan ettiği tool\'lar', count: 820, sig: 'plugin_id → Tool[]' },
+    { mod: 'K01', name: 'landx.plugin.install', desc: 'Plugin kurulum workflow', count: 14, sig: 'plugin_id, version → InstallId' },
+    { mod: 'K02', name: 'landx.doctype.list', desc: 'DocType kataloğu', count: 2840, sig: 'tenant_id → DocType[]' },
+    { mod: 'K02', name: 'landx.doctype.field_def', desc: 'Bir doctype\'ın alan tanımları', count: 1240, sig: 'doctype_id → Field[]' },
+    { mod: 'K02', name: 'landx.doctype.introspect', desc: 'Runtime schema introspection', count: 480, sig: 'doctype_id → Schema' },
+    { mod: 'K02', name: 'landx.doctype.auto_api', desc: 'Auto-generated REST endpoints', count: 240, sig: 'doctype_id → EndpointSpec' },
+    { mod: 'K04', name: 'landx.event.publish', desc: 'Event bus\'a olay yayını', count: 18420, sig: 'event_type, payload → EventId' },
+    { mod: 'K05', name: 'landx.config.read', desc: 'Config anahtarını çöz', count: 24820, sig: 'key, scope → Value' },
+    { mod: 'K05', name: 'landx.config.lookup', desc: 'Hierarchical config lookup', count: 8420, sig: 'key → ResolvedValue' },
+    { mod: 'K05', name: 'landx.flag.evaluate', desc: 'Feature flag değerlendirme', count: 48200, sig: 'flag_key, user_ctx → bool' },
+    // I - Identity
+    { mod: 'I01', name: 'landx.tenant.list', desc: 'Tenant kataloğu', count: 142, sig: '→ Tenant[]' },
+    { mod: 'I01', name: 'landx.tenant.provision', desc: 'Yeni tenant provisioning', count: 4, sig: 'name, plan, region → ProvisioningId' },
+    { mod: 'I02', name: 'landx.principal.list', desc: 'Principal (user+agent+system) listesi', count: 1420, sig: 'tenant_id, type → Principal[]' },
+    { mod: 'I03', name: 'landx.session.list', desc: 'Aktif oturumlar', count: 824, sig: 'user_id → Session[]' },
+    { mod: 'I03', name: 'landx.session.revoke', desc: 'Oturum sonlandır', count: 42, sig: 'session_id → RevocationId' },
+    { mod: 'I04', name: 'landx.capability.describe', desc: 'Capability scope açıklaması', count: 280, sig: 'scope_id → Description' },
+    { mod: 'I04', name: 'landx.capability.allowed_tools', desc: 'Scope\'un izin verdiği tool\'lar', count: 6240, sig: 'scope_id → Tool[]' },
+    { mod: 'I05', name: 'landx.tenant.export', desc: 'Tenant veri export job (KVKK m.11)', count: 8, sig: 'tenant_id, format → JobId' },
+    // A - Agent Runtime
+    { mod: 'A01', name: 'landx.mcp.server_list', desc: 'Kayıtlı MCP server\'lar', count: 320, sig: '→ Server[]' },
+    { mod: 'A01', name: 'landx.tool.call', desc: 'MCP tool invocation (proxy)', count: 142840, sig: 'tool_name, args → Result' },
+    { mod: 'A02', name: 'landx.tool.list', desc: 'Tool registry kataloğu', count: 8420, sig: 'category → Tool[]' },
+    { mod: 'A02', name: 'landx.tool.schema_in', desc: 'Tool input JSON schema', count: 2480, sig: 'tool_id → JSONSchema' },
+    { mod: 'A02', name: 'landx.tool.schema_out', desc: 'Tool output JSON schema', count: 2480, sig: 'tool_id → JSONSchema' },
+    { mod: 'A02', name: 'landx.tool.llm_desc', desc: 'LLM-optimized tool description', count: 1840, sig: 'tool_id → MarkdownDesc' },
+    { mod: 'A02', name: 'landx.tool.search', desc: 'Semantic tool search (NL)', count: 142, sig: 'query → Tool[]' },
+    { mod: 'A03', name: 'landx.capability.pack', desc: 'Capability pack tanımları', count: 84, sig: 'pack_id → Capability[]' },
+    { mod: 'A03', name: 'landx.capability.pack_tools', desc: 'Pack\'in içerdiği tool\'lar', count: 240, sig: 'pack_id → Tool[]' },
+    { mod: 'A04', name: 'landx.memory.store', desc: 'Long-term semantic memory yaz', count: 1420, sig: 'agent_id, key, content → MemoryId' },
+    { mod: 'A04', name: 'landx.memory.retrieve', desc: 'Memory retrieval (cosine sim.)', count: 8420, sig: 'agent_id, query, topK → Item[]' },
+    { mod: 'A05', name: 'landx.embedding.models', desc: 'Embedding model kataloğu', count: 42, sig: '→ Model[]' },
+    { mod: 'A05', name: 'landx.embedding.job', desc: 'Embedding job kuyruğa al', count: 1240, sig: 'corpus_id, model → JobId' },
+    { mod: 'A05', name: 'landx.search.hybrid', desc: 'BM25 + vector hibrit arama', count: 6480, sig: 'query, filters → Result[]' },
+    { mod: 'A05', name: 'landx.search.semantic', desc: 'Pure semantic vector search', count: 2820, sig: 'embedding, topK → Match[]' },
+    { mod: 'A06', name: 'landx.prompt.list', desc: 'Prompt kütüphanesi', count: 84, sig: 'category → Prompt[]' },
+    { mod: 'A07', name: 'landx.provider.list', desc: 'LLM sağlayıcı kataloğu', count: 14, sig: '→ Provider[]' },
+    { mod: 'A09', name: 'landx.run.list', desc: 'Agent run kataloğu', count: 1420, sig: 'agent_id, status → Run[]' },
+    { mod: 'A09', name: 'landx.run.resume', desc: 'Checkpoint\'ten resume', count: 84, sig: 'run_id, checkpoint_id → ResumeId' },
+    { mod: 'A11', name: 'landx.conversation.list', desc: 'Konuşma geçmişi', count: 8420, sig: 'user_id → Conversation[]' },
+    { mod: 'A11', name: 'landx.message.read', desc: 'Mesaj içeriği', count: 24820, sig: 'message_id → Message' },
+    // S - Application
+    { mod: 'S03', name: 'landx.form.suggest', desc: 'AI auto-fill suggestion', count: 1240, sig: 'doctype, partial → Suggestion[]' },
+    { mod: 'S05', name: 'landx.notification.send', desc: 'Multi-channel bildirim', count: 8420, sig: 'user_id, template, ctx → SendId' },
+    { mod: 'S06', name: 'landx.search.endpoint', desc: 'Genel arama yüzeyi', count: 28420, sig: 'q, filters → Result[]' },
+    { mod: 'S06', name: 'landx.search.nl_parse', desc: 'NL → yapısal sorgu', count: 1240, sig: 'query_text → StructuredQuery' },
+    // O - Operations
+    { mod: 'O02', name: 'landx.marketplace.search', desc: 'Plugin marketplace arama', count: 240, sig: 'query, category → Listing[]' }
   ];
+  const totalCalls = TOOLS.reduce((s, t) => s + t.count, 0);
+  const [filterMod, setFilterMod] = useState<string>('all');
+  const modules = Array.from(new Set(TOOLS.map((t) => t.mod))).sort();
+  const visible = filterMod === 'all' ? TOOLS : TOOLS.filter((t) => t.mod === filterMod);
   return (
     <Card>
-      <p className="text-sm text-fg-3 mb-3">A02 Tool Registry'e otomatik kayıtlı tools. Her tool MCP spec'i ile uyumlu input schema'ya sahip.</p>
-      <table className="w-full text-sm">
-        <thead><tr className="border-b border-slate-200 dark:border-slate-800 text-fg-3 text-xs">
-          <th className="text-left py-2">Tool</th>
-          <th className="text-left py-2">Açıklama</th>
-          <th className="text-right py-2">Çağrı (24sa)</th>
-        </tr></thead>
-        <tbody>
-          {TOOLS.map((t) => (
-            <tr key={t.name} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
-              <td className="py-2"><code className="text-xs text-brand-700 dark:text-brand-300">{t.name}</code></td>
-              <td className="py-2 text-xs text-fg-3">{t.desc}</td>
-              <td className="py-2 text-right tabular-nums font-medium">{t.count.toLocaleString('tr-TR')}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
+        <div>
+          <h3 className="font-medium inline-flex items-center gap-2"><Toolbox size={14} weight="fill" className="text-amber-500" /> Tool Registry ({TOOLS.length})</h3>
+          <p className="text-sm text-fg-3">Excel\'de MCP-Tool olarak işaretli her alandan otomatik üretildi (A02 Tool Registry).</p>
+        </div>
+        <div className="text-xs text-fg-3">Toplam 24sa çağrı: <strong className="tabular-nums">{totalCalls.toLocaleString('tr-TR')}</strong></div>
+      </div>
+      <div className="flex flex-wrap gap-1 mb-3">
+        <button onClick={() => setFilterMod('all')} className={cls('text-[11px] px-2 py-1 rounded-full', filterMod === 'all' ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800')}>Tümü ({TOOLS.length})</button>
+        {modules.map((m) => {
+          const c = TOOLS.filter((t) => t.mod === m).length;
+          return (
+            <button key={m} onClick={() => setFilterMod(m)} className={cls('text-[11px] px-2 py-1 rounded-full', filterMod === m ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800')}>
+              {m} ({c})
+            </button>
+          );
+        })}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-slate-200 dark:border-slate-800 text-fg-3 text-xs">
+            <th className="text-left py-2 w-12">Modül</th>
+            <th className="text-left py-2">Tool</th>
+            <th className="text-left py-2 hidden md:table-cell">İmza</th>
+            <th className="text-left py-2 hidden sm:table-cell">Açıklama</th>
+            <th className="text-right py-2">Çağrı (24sa)</th>
+          </tr></thead>
+          <tbody>
+            {visible.map((t) => (
+              <tr key={t.name} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                <td className="py-2"><code className="text-[10px] text-fg-3 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{t.mod}</code></td>
+                <td className="py-2"><code className="text-xs text-brand-700 dark:text-brand-300">{t.name}</code></td>
+                <td className="py-2 hidden md:table-cell"><code className="text-[11px] text-fg-3">{t.sig}</code></td>
+                <td className="py-2 hidden sm:table-cell text-xs text-fg-3">{t.desc}</td>
+                <td className="py-2 text-right tabular-nums font-medium">{t.count.toLocaleString('tr-TR')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }
