@@ -35,7 +35,25 @@ export default function SellerOffersPage() {
       key: 'buyer', header: 'Alıcı', hideOn: 'sm',
       cell: (r) => {
         const u = data.users.find((x) => x.id === r.buyerId);
-        return u ? <span className="text-sm">{u.displayName}</span> : '—';
+        if (!u) return '—';
+        return (
+          <div className="inline-flex items-center gap-2">
+            <img src={u.avatarUrl} alt="" className="w-6 h-6 rounded-full bg-slate-200 object-cover" />
+            <div className="text-xs">
+              <div className="font-medium">{u.displayName}</div>
+              <div className="text-fg-3">★ {u.rating} · KYC: {u.kycLevel}</div>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      key: 'ratio', header: 'Liste %', hideOn: 'md',
+      cell: (r) => {
+        const l = data.listings.find((x) => x.id === r.listingId);
+        if (!l) return '—';
+        const pct = Math.round((r.amount / l.price) * 100);
+        return <span className={`text-xs font-medium ${pct >= 90 ? 'text-emerald-600' : pct >= 75 ? 'text-amber-600' : 'text-rose-600'}`}>%{pct}</span>;
       }
     },
     { key: 'amount', header: 'Tutar', sortable: true, align: 'right', cell: (r) => formatPrice(r.amount, locale) },
