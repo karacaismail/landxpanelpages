@@ -49,6 +49,7 @@ export function Footer({ compact }: Props) {
             Son senkron: az önce
           </span>
           <span>Ortam: Demo · v0.1.0</span>
+          <a href="https://github.com/karacaismail/landxpanelpages" target="_blank" rel="noopener noreferrer" className="hover:text-fg-1 underline-offset-2 hover:underline">GitHub</a>
           <span className="ml-auto">© {new Date().getFullYear()} LandX. {t('footer.rights')}</span>
         </div>
       </div>
