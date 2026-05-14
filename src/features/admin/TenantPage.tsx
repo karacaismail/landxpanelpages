@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Buildings, Users, ShieldCheck, Pulse, Sparkle, Hourglass, CheckCircle, Archive, X, ArrowRight, ArrowLeft } from '@phosphor-icons/react';
+import { Buildings, Users, ShieldCheck, Pulse, Sparkle, Hourglass, CheckCircle, Archive, X, ArrowRight, ArrowLeft, Warning } from '@phosphor-icons/react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { cls } from '@/lib/utils/cls';
 import { toast } from '@/store/toast';
@@ -187,13 +187,15 @@ export default function TenantPage() {
             </div>
           </Card>
 
+          <IsolationSimulator tenantName={selected.name} schemaId={selected.id} />
           <Card>
-            <h3 className="font-medium mb-2">İzolasyon kontrolü (I05)</h3>
+            <h3 className="font-medium mb-2">İzolasyon kontrolü (I05) — sürekli izleme</h3>
             <ul className="text-sm space-y-1">
-              <li className="inline-flex items-center gap-2"><CheckCircle size={14} weight="fill" className="text-emerald-500" /> Cross-tenant query saldırısı: <strong>0</strong></li>
+              <li className="inline-flex items-center gap-2"><CheckCircle size={14} weight="fill" className="text-emerald-500" /> Cross-tenant query saldırısı (30 gün): <strong>0</strong></li>
               <li className="inline-flex items-center gap-2"><CheckCircle size={14} weight="fill" className="text-emerald-500" /> Schema switch overhead: P99 1.8ms</li>
               <li className="inline-flex items-center gap-2"><CheckCircle size={14} weight="fill" className="text-emerald-500" /> Tenant context propagation hata: %0.00</li>
               <li className="inline-flex items-center gap-2"><CheckCircle size={14} weight="fill" className="text-emerald-500" /> Agent çağrılarında tenant context korunuyor</li>
+              <li className="inline-flex items-center gap-2"><CheckCircle size={14} weight="fill" className="text-emerald-500" /> Row-Level Security policy: <code className="text-xs">tenant_isolation</code> aktif</li>
             </ul>
           </Card>
 
@@ -404,6 +406,120 @@ function NewTenantWizard({ onClose, onCreate }: { onClose: () => void; onCreate:
         )}
       </div>
     </div>
+  );
+}
+
+function IsolationSimulator({ tenantName, schemaId }: { tenantName: string; schemaId: string }) {
+  const [test, setTest] = useState<string>('select.cross');
+  const [result, setResult] = useState<{ ok: boolean; logs: string[]; verdict: string } | null>(null);
+  const [running, setRunning] = useState(false);
+
+  const TESTS: { id: string; label: string; query: string; desc: string }[] = [
+    { id: 'select.cross', label: 'Cross-tenant SELECT', query: `SELECT * FROM landx_core_listing WHERE tenant_id = 'OTHER_TENANT'`, desc: 'Diğer tenant verilerini okumaya çalış' },
+    { id: 'update.bypass', label: 'tenant_id\'siz UPDATE', query: `UPDATE landx_core_listing SET status='live' WHERE id='L-OTHER'`, desc: 'WHERE\'da tenant_id yokken update' },
+    { id: 'union.injection', label: 'UNION enjeksiyon', query: `SELECT id FROM landx_core_listing UNION SELECT email FROM landx_identity_user`, desc: 'Tip mismatch + RLS bypass denemesi' },
+    { id: 'agent.escape', label: 'Agent context escape', query: `SET app.tenant_id = 'OTHER_TENANT'; SELECT * FROM landx_core_listing`, desc: 'AI agent\'ın session\'ında tenant değiştirme' },
+    { id: 'jdbc.direct', label: 'Doğrudan DB bağlantı', query: `psql "host=db user=app dbname=landx" -c "SELECT * FROM landx_core_listing"`, desc: 'Uygulama katmanını atlayarak DB erişimi' }
+  ];
+
+  function runTest() {
+    const t = TESTS.find((x) => x.id === test)!;
+    setRunning(true);
+    setResult(null);
+    const logs: string[] = [
+      `[${new Date().toLocaleTimeString('tr-TR')}] Test başlıyor: ${t.label}`,
+      `[${new Date().toLocaleTimeString('tr-TR')}] Tenant context: app.tenant_id='${schemaId}'`,
+      `[${new Date().toLocaleTimeString('tr-TR')}] Query: ${t.query}`
+    ];
+    setTimeout(() => {
+      const verdicts: Record<string, { ok: boolean; logs: string[]; verdict: string }> = {
+        'select.cross': {
+          ok: true,
+          logs: [...logs,
+            `[${new Date().toLocaleTimeString('tr-TR')}] RLS policy 'tenant_isolation' kontrol ediyor...`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] Policy: tenant_id = current_setting('app.tenant_id')`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ✓ 0 satır döndü — diğer tenant satırları filtrelendi`
+          ],
+          verdict: 'GÜVENLİ — Row-Level Security policy diğer tenant verilerini gizledi.'
+        },
+        'update.bypass': {
+          ok: true,
+          logs: [...logs,
+            `[${new Date().toLocaleTimeString('tr-TR')}] RLS policy USING + WITH CHECK çalıştı`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ✓ 0 satır etkilendi — bu tenant'a ait olmayan kayıt güncellenmedi`
+          ],
+          verdict: 'GÜVENLİ — UPDATE de SELECT gibi RLS\'ye tabi, WITH CHECK koşulu sağlandı.'
+        },
+        'union.injection': {
+          ok: true,
+          logs: [...logs,
+            `[${new Date().toLocaleTimeString('tr-TR')}] Parametre escaping aktif (PostgreSQL prepared statements)`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] Tip mismatch tespit edildi: uuid vs text`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ✓ Query parser tarafından reddedildi`
+          ],
+          verdict: 'GÜVENLİ — Prepared statements + tip kontrolü enjeksiyonu engelliyor.'
+        },
+        'agent.escape': {
+          ok: true,
+          logs: [...logs,
+            `[${new Date().toLocaleTimeString('tr-TR')}] A03 Agent Identity & Scopes kontrolü`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] Agent capability 'tenant.switch' verilmemiş`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ✗ SET app.tenant_id komutu reddedildi (PermissionDenied)`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ✓ D01 audit log\'a şüpheli işlem yazıldı`
+          ],
+          verdict: 'GÜVENLİ — Agent kapsamı tenant değişikliğine izin vermiyor, ihlal denemesi loglandı.'
+        },
+        'jdbc.direct': {
+          ok: false,
+          logs: [...logs,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ⚠ Doğrudan DB bağlantısı — uygulama RBAC bypass edilmiş!`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] Ancak: DB user 'app' default rolünde RLS hâlâ aktif`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] SET app.tenant_id yapılmamış → tüm sorgular 0 satır döndürür`,
+            `[${new Date().toLocaleTimeString('tr-TR')}] ✓ Kısmi güvenli — fakat öneri: connection-level tenant_id zorunlu`
+          ],
+          verdict: 'KISMİ — DB user\'ın bypass yetkisi varsa risk var. Connection pool level enforcement önerilir.'
+        }
+      };
+      setResult(verdicts[test]);
+      setRunning(false);
+    }, 1200);
+  }
+
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
+        <h3 className="font-medium inline-flex items-center gap-2"><ShieldCheck size={16} weight="fill" className="text-emerald-500" /> İzolasyon Saldırı Simülatörü (I05)</h3>
+        <span className="text-[10px] uppercase px-1.5 py-0.5 rounded font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">QA / pen-test</span>
+      </div>
+      <p className="text-sm text-fg-3 mb-3">Tenant <strong>{tenantName}</strong> bağlamında diğer tenant verilerine erişim denemelerini test edin. Tüm denemeler audit'e (D01) düşer.</p>
+      <div className="grid sm:grid-cols-2 gap-2 mb-3">
+        {TESTS.map((tt) => (
+          <button
+            key={tt.id}
+            onClick={() => setTest(tt.id)}
+            className={cls(
+              'text-left p-2 rounded-r-2 border text-xs',
+              test === tt.id ? 'border-brand-300 dark:border-brand-700 bg-brand-50 dark:bg-brand-900/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+            )}
+          >
+            <div className="font-medium">{tt.label}</div>
+            <div className="text-fg-3 text-[10px] mt-0.5 line-clamp-1">{tt.desc}</div>
+          </button>
+        ))}
+      </div>
+      <Button size="sm" onClick={runTest} disabled={running} iconLeft={running ? <Hourglass size={14} className="animate-pulse" /> : <CheckCircle size={14} />}>
+        {running ? 'Test çalışıyor...' : 'Saldırıyı simüle et'}
+      </Button>
+      {result && (
+        <div className="mt-3 space-y-2">
+          <div className={cls('rounded-r-2 p-2 text-sm font-medium', result.ok ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-200' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200')}>
+            {result.ok ? <CheckCircle size={14} weight="fill" className="inline mr-1" /> : <Warning size={14} weight="fill" className="inline mr-1" />}
+            {result.verdict}
+          </div>
+          <pre className="text-[11px] bg-slate-900 text-emerald-300 rounded-r-2 p-3 overflow-x-auto font-mono leading-relaxed">{result.logs.join('\n')}</pre>
+        </div>
+      )}
+    </Card>
   );
 }
 

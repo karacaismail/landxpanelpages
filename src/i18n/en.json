@@ -36,6 +36,7 @@
     "apiExplorer": "API Explorer",
     "doctypeStudio": "DocType Studio",
     "workflowDesigner": "Workflow Designer",
+    "featureFlags": "Feature Flags",
     "tenant": "Tenant Mgmt",
     "notifications": "Notifications",
     "settings": "Settings",
