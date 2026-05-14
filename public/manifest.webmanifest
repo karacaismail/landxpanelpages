@@ -1,0 +1,40 @@
+{
+  "name": "LandX — AI-First Arsa Pazaryeri",
+  "short_name": "LandX",
+  "description": "Türkiye'nin AI-first arsa pazaryeri. TKGM doğrulamalı, risk skoru ile şeffaf.",
+  "start_url": "/landxpanelpages/",
+  "scope": "/landxpanelpages/",
+  "display": "standalone",
+  "background_color": "#0e7c61",
+  "theme_color": "#0e7c61",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Keşfet",
+      "short_name": "Keşfet",
+      "url": "/landxpanelpages/#/listings",
+      "description": "İlanları ara"
+    },
+    {
+      "name": "Yeni İlan",
+      "short_name": "Yeni",
+      "url": "/landxpanelpages/#/sell",
+      "description": "İlan yayınla"
+    },
+    {
+      "name": "Favoriler",
+      "short_name": "Favoriler",
+      "url": "/landxpanelpages/#/account/favorites"
+    }
+  ]
+}
