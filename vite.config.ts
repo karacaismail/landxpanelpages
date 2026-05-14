@@ -16,13 +16,23 @@ export default defineConfig({
     chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query', '@tanstack/react-table'],
-          ui: ['flowbite-react', 'flowbite', '@phosphor-icons/react'],
-          map: ['leaflet', 'react-leaflet'],
-          charts: ['recharts'],
-          forms: ['react-hook-form', 'zod', '@hookform/resolvers']
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            // Önce daha spesifik kuralları çalıştır
+            if (id.includes('@phosphor-icons')) return 'icons';
+            if (id.includes('flowbite-react') || id.includes('flowbite/')) return 'flowbite';
+            if (id.includes('recharts') || id.includes('victory-vendor') || id.includes('d3-')) return 'charts';
+            if (id.includes('leaflet')) return 'map';
+            if (id.includes('@faker-js')) return 'seed-gen';
+            if (id.includes('@tanstack')) return 'query';
+            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('/zod/')) return 'forms';
+            if (id.includes('/i18next') || id.includes('react-i18next')) return 'i18n';
+            if (id.includes('/date-fns')) return 'datefns';
+            if (id.includes('/zustand') || id.includes('/clsx') || id.includes('/nanoid')) return 'state';
+            if (id.includes('/react-dom') || id.includes('/react-router') || id.match(/\/react\/[^/]*$/)) return 'react';
+          }
+          if (id.includes('src/data/fixtures/modules-detail.ts')) return 'modules-detail';
+          if (id.includes('src/data/generators') || id.includes('src/data/seed.ts')) return 'seed-data';
         }
       }
     }
