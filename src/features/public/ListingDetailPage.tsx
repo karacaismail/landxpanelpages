@@ -300,13 +300,44 @@ export default function ListingDetailPage() {
       {viewingModal && (
         <Modal title="Görme randevusu" onClose={() => setViewingModal(false)}>
           <p className="text-sm text-fg-3 mb-3">İlan sahibi ile yüz yüze görüşme için tarih önerin.</p>
-          <input type="datetime-local" value={viewingDate} onChange={(e) => setViewingDate(e.target.value)} className="w-full rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-base min-h-[44px]" />
+          <ViewingQuickSlots value={viewingDate} onChange={setViewingDate} />
+          <input type="datetime-local" value={viewingDate} onChange={(e) => setViewingDate(e.target.value)} className="w-full rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-base min-h-[44px] mt-3" />
           <div className="flex gap-2 mt-3">
             <Button variant="outline" block onClick={() => setViewingModal(false)}>{t('actions.cancel')}</Button>
             <Button block disabled={!viewingDate} onClick={submitViewing}>Randevu öner</Button>
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+function ViewingQuickSlots({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const now = new Date();
+  function setHr(d: Date, h: number) { const r = new Date(d); r.setHours(h, 0, 0, 0); return r; }
+  const tom = new Date(now); tom.setDate(tom.getDate() + 1);
+  const sat = new Date(now); sat.setDate(sat.getDate() + ((6 - sat.getDay() + 7) % 7 || 7));
+  const sun = new Date(now); sun.setDate(sun.getDate() + ((0 - sun.getDay() + 7) % 7 || 7));
+  const slots = [
+    { label: 'Bugün 17:00', date: setHr(now, 17) },
+    { label: 'Yarın 11:00', date: setHr(tom, 11) },
+    { label: 'Yarın 15:00', date: setHr(tom, 15) },
+    { label: 'Cumartesi 11:00', date: setHr(sat, 11) },
+    { label: 'Pazar 13:00', date: setHr(sun, 13) }
+  ];
+  function toLocal(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {slots.map((s) => {
+        const v = toLocal(s.date);
+        const on = value === v;
+        return (
+          <button key={s.label} type="button" onClick={() => onChange(v)} className={`rounded-full px-3 py-1 text-xs border transition-colors ${on ? 'bg-brand-500 text-white border-brand-500' : 'border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>{s.label}</button>
+        );
+      })}
     </div>
   );
 }
