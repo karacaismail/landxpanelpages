@@ -77,6 +77,25 @@ export default function UsersPage() {
       <SectionHeading title="Kullanıcılar" description={`${data.users.length} kayıt`} actions={
         <Button iconLeft={<Plus size={14} />} onClick={() => setEdit(emptyUser())}>Yeni kullanıcı</Button>
       } />
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div className="rounded-r-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+          <div className="text-xs uppercase tracking-wider text-fg-3">Toplam</div>
+          <div className="text-2xl font-semibold mt-1">{data.users.length}</div>
+        </div>
+        <div className="rounded-r-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+          <div className="text-xs uppercase tracking-wider text-fg-3">KYC tam</div>
+          <div className="text-2xl font-semibold mt-1">{data.users.filter((u) => u.kycLevel === 'full').length}</div>
+        </div>
+        <div className="rounded-r-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+          <div className="text-xs uppercase tracking-wider text-fg-3">Son 30 gün yeni</div>
+          <div className="text-2xl font-semibold mt-1">{data.users.filter((u) => (Date.now() - new Date(u.createdAt).getTime()) < 30 * 86400_000).length}</div>
+        </div>
+        <div className="rounded-r-3 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+          <div className="text-xs uppercase tracking-wider text-fg-3">Askıda</div>
+          <div className="text-2xl font-semibold mt-1 text-rose-600">{data.users.filter((u) => u.status === 'suspended').length}</div>
+        </div>
+      </div>
       <DataTable
         data={data.users}
         columns={columns}
