@@ -113,12 +113,11 @@ export function AssistantDrawer() {
         )}
 
         {tab === 'suggest' && (
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            <SuggestionCard title="Onaylanmamış 12 ilan bekliyor" desc="AI risk skorları: 3 yüksek, 5 orta, 4 düşük. Düşük olanları toplu onaylayalım mı?" onClick={() => { ui.setAssistant(false); navigate('/admin/approvals'); }} />
-            <SuggestionCard title="Bu hafta 7 yeni satıcı kaydı" desc="3'ü KYC bekliyor. Otomatik hatırlatma kuralı aktif." />
-            <SuggestionCard title="Fiyat anomalisi tespit edildi" desc="L0042 ilanında +%32 değişim. Görüntüle?" onClick={() => { ui.setAssistant(false); navigate('/listings/L0042'); }} />
-            <SuggestionCard title="Demo data üretildi" desc={`${data.listings.length} ilan, ${data.users.length} kullanıcı, ${data.ecaRules.length} ECA kuralı yüklendi.`} />
-          </div>
+          <ContextualSuggestions
+            pathname={loc.pathname}
+            onClose={() => ui.setAssistant(false)}
+            onNavigate={(href) => { ui.setAssistant(false); navigate(href); }}
+          />
         )}
 
         {tab === 'automation' && (
@@ -160,6 +159,96 @@ function SuggestionCard({ title, desc, onClick }: { title: string; desc: string;
     <div onClick={onClick} className={cls('p-3 rounded-r-3 border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-brand-50/50 to-transparent dark:from-brand-900/20', onClick && 'cursor-pointer hover:shadow-sm')}>
       <div className="text-sm font-medium">{title}</div>
       <div className="text-xs text-fg-3 mt-0.5">{desc}</div>
+    </div>
+  );
+}
+
+interface CtxProps { pathname: string; onClose: () => void; onNavigate: (href: string) => void; }
+function ContextualSuggestions({ pathname, onClose, onNavigate }: CtxProps) {
+  const data = useData();
+  const auth = useAuth();
+  const me = data.users.find((u) => u.id === auth.currentUserId);
+
+  // Route-aware suggestion sets
+  let suggestions: { title: string; desc: string; href?: string }[] = [];
+
+  if (pathname.startsWith('/admin/approvals')) {
+    const queue = data.listings.filter((l) => l.status === 'review');
+    suggestions = [
+      { title: `${queue.length} ilan onay bekliyor`, desc: 'Risk dağılımı: yüksek ' + queue.filter((q) => q.aiRiskScore >= 60).length + ', orta ' + queue.filter((q) => q.aiRiskScore >= 30 && q.aiRiskScore < 60).length + ', düşük ' + queue.filter((q) => q.aiRiskScore < 30).length },
+      { title: 'Düşük riskli olanları topluca onayla', desc: 'AI önerisi: 1-tık ile gerçek değer.' },
+      { title: 'AI red mektubu taslağı hazır', desc: 'TKGM uyumsuzluğu olanlar için.' }
+    ];
+  } else if (pathname.startsWith('/admin/rules')) {
+    suggestions = [
+      { title: `${data.ecaRules.filter((r) => r.enabled).length} kural etkin`, desc: 'Son 24h\'de en çok tetiklenen: listing.created' },
+      { title: 'Yeni kural taslağı', desc: 'Fiyat -10% düşüş → favori kullanıcılara bildir.' },
+      { title: 'Kural performansı raporu', desc: 'Etkili 3, az tetiklenen 5 kural.' }
+    ];
+  } else if (pathname.startsWith('/admin/reports/ai-usage')) {
+    suggestions = [
+      { title: 'Maliyeti %22 azaltma fırsatı', desc: 'Bazı promptlar daha küçük modele yönlendirilebilir.' },
+      { title: 'Yüksek latency tespiti', desc: 'P95 saat 14-16 arası %35 yüksek.' },
+      { title: 'Halüsinasyon trendi', desc: 'Risk açıklama promptu yenilenebilir.' }
+    ];
+  } else if (pathname.startsWith('/admin')) {
+    const pending = data.listings.filter((l) => l.status === 'review').length;
+    suggestions = [
+      { title: `${pending} ilan onay bekliyor`, desc: 'AI risk dağılımı + 1-tık aksiyonlar.', href: '/admin/approvals' },
+      { title: 'Bu hafta 7 yeni satıcı kaydı', desc: '3\'ü KYC bekliyor.', href: '/admin/users' },
+      { title: 'Fiyat anomalisi: L0042', desc: '%32 değişim.', href: '/listings/L0042' },
+      { title: 'AI kullanım: 1.45M token (30g)', desc: 'Maliyet ₺1.35.', href: '/admin/reports/ai-usage' }
+    ];
+  } else if (pathname.startsWith('/seller/listings/new')) {
+    suggestions = [
+      { title: 'AI ile başlık önerisi', desc: 'Yatırımlık + Şehir + İlçe formülü +%12 tıklama.' },
+      { title: 'TKGM doğrulama eksik', desc: 'Konum adımında parsel sorgusu yapılabilir.' },
+      { title: 'Fiyatı bölge ortalamasına çek', desc: 'AI değerleme önerisi 2.5M ₺.' }
+    ];
+  } else if (pathname.startsWith('/seller')) {
+    const mine = data.listings.filter((l) => l.ownerId === auth.currentUserId);
+    suggestions = [
+      { title: `${mine.length} ilanınızı yönetiyorsunuz`, desc: 'Yayında ' + mine.filter((l) => l.status === 'live').length + ', taslak ' + mine.filter((l) => l.status === 'draft').length, href: '/seller/listings' },
+      { title: 'Bekleyen teklif: ' + data.offers.filter((o) => o.sellerId === auth.currentUserId && o.status === 'pending').length, desc: 'Otomatik yanıt için ECA kuralı kurabilirsiniz.', href: '/seller/offers' },
+      { title: 'Performans özeti', desc: 'Görüntülenmeler +%12 (son 7g).', href: '/seller/performance' }
+    ];
+  } else if (pathname.startsWith('/listings/')) {
+    suggestions = [
+      { title: 'Bu ilanı favorilere ekle', desc: 'Fiyat değişikliklerinde bildirim alın.' },
+      { title: 'Benzer ilanları getir', desc: 'AI öneri: aynı bölgede 6 ilan daha.' },
+      { title: 'Pazarlık önerisi', desc: '%8 indirim öner ve teklif gönder.' }
+    ];
+  } else if (pathname === '/listings' || pathname.startsWith('/listings?')) {
+    suggestions = [
+      { title: 'Niyetinizi yazın', desc: '"İstanbul Beykoz 5000 m² imarlı 2.5M altı" gibi.' },
+      { title: 'Aramayı kaydet + alarm', desc: 'Yeni eşleşenler için bildirim.' },
+      { title: 'Harita modunda incele', desc: 'Bölgesel yoğunluğu görün.' }
+    ];
+  } else if (pathname === '/') {
+    suggestions = [
+      { title: 'Hızlı başlangıç', desc: 'Niyet çubuğuna bir bölge yazın.', href: '/listings' },
+      { title: 'Satıcı olarak ilan ekle', desc: 'AI 6 adımlık sihirbazda yanınızda.', href: '/sell' },
+      { title: 'Rol seçerek demo', desc: 'Buyer / Seller / Admin paneli.', href: '/auth' }
+    ];
+  } else if (pathname.startsWith('/account')) {
+    suggestions = [
+      { title: 'Profil tamamlanma %' + (me?.kycLevel === 'full' ? 100 : 60), desc: 'KYC seviyesini yükseltin.', href: '/account/profile' },
+      { title: data.favorites.filter((f) => f.userId === auth.currentUserId).length + ' favori ilan', desc: 'AI benzer 5 ilan önerir.', href: '/account/favorites' },
+      { title: 'Kaydedilmiş aramalar', desc: 'Alarm açık olanlardan günlük özet gelir.', href: '/account/searches' }
+    ];
+  } else {
+    suggestions = [
+      { title: 'Komut paletini açın', desc: 'Cmd+K ile niyet/komut tek alanda.' },
+      { title: 'Tema ve dili tercih', desc: 'Header sağ üst köşeden.' }
+    ];
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold mb-1">Bu sayfa için</div>
+      {suggestions.map((s, i) => (
+        <SuggestionCard key={i} title={s.title} desc={s.desc} onClick={s.href ? () => onNavigate(s.href!) : undefined} />
+      ))}
     </div>
   );
 }
