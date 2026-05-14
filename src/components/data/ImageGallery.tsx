@@ -48,7 +48,12 @@ export function ImageGallery({ images }: Props) {
       >
         <img src={main.url} alt={main.alt} className="w-full aspect-[16/10] object-cover" />
         {images.length > 1 && (
-          <div className="absolute top-2 right-2 text-xs font-medium bg-black/50 text-white rounded-full px-2 py-0.5">{idx + 1}/{images.length}</div>
+          <>
+            <div className="absolute top-2 right-2 text-xs font-medium bg-black/50 text-white rounded-full px-2 py-0.5">{idx + 1}/{images.length}</div>
+            {idx === 0 && (
+              <div className="md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] bg-black/50 text-white rounded-full px-2 py-0.5 animate-pulse">← Kaydırın →</div>
+            )}
+          </>
         )}
         {images.length > 1 && (
           <>
