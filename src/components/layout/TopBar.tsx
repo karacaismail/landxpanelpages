@@ -169,16 +169,30 @@ function UserMenu() {
         <span className="hidden md:inline text-sm font-medium">{me.displayName.split(' ')[0]}</span>
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 mt-1 w-56 bg-white dark:bg-slate-900 rounded-r-2 border border-slate-200 dark:border-slate-800 shadow-lg py-1 z-30">
-          <MenuItem onClick={() => { setOpen(false); navigate('/account'); }}>{t('nav.account')}</MenuItem>
-          {auth.role === 'seller' && <MenuItem onClick={() => { setOpen(false); navigate('/seller'); }}>{t('nav.seller')}</MenuItem>}
-          {auth.role === 'admin' && <MenuItem onClick={() => { setOpen(false); navigate('/admin'); }}>{t('nav.admin')}</MenuItem>}
-          <MenuItem onClick={() => { setOpen(false); navigate('/account/favorites'); }}>{t('nav.favorites')}</MenuItem>
-          <MenuItem onClick={() => { setOpen(false); navigate('/account/messages'); }}>{t('nav.messages')}</MenuItem>
-          <MenuItem onClick={() => { setOpen(false); navigate('/account/profile'); }}>{t('nav.profile')}</MenuItem>
-          <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
-          <MenuItem onClick={() => { setOpen(false); auth.logout(); navigate('/'); }}>{t('nav.logout')}</MenuItem>
-        </div>
+        <>
+          <button onClick={() => setOpen(false)} className="fixed inset-0 z-20" aria-label="Menüyü kapat" />
+          <div role="menu" className="absolute right-0 mt-1 w-60 bg-white dark:bg-slate-900 rounded-r-2 border border-slate-200 dark:border-slate-800 shadow-lg py-1 z-30">
+            <div className="px-3 py-2 border-b border-slate-200 dark:border-slate-800">
+              <div className="text-sm font-medium truncate">{me.displayName}</div>
+              <div className="text-xs text-fg-3 truncate">{me.email}</div>
+              <div className="text-[10px] text-brand-700 dark:text-brand-300 mt-0.5 uppercase tracking-wider">{auth.role}</div>
+            </div>
+            <MenuItem onClick={() => { setOpen(false); navigate('/account'); }}>{t('nav.account')}</MenuItem>
+            {auth.role === 'seller' && <MenuItem onClick={() => { setOpen(false); navigate('/seller'); }}>{t('nav.seller')}</MenuItem>}
+            {auth.role === 'admin' && <MenuItem onClick={() => { setOpen(false); navigate('/admin'); }}>{t('nav.admin')}</MenuItem>}
+            <MenuItem onClick={() => { setOpen(false); navigate('/account/favorites'); }}>{t('nav.favorites')}</MenuItem>
+            <MenuItem onClick={() => { setOpen(false); navigate('/account/messages'); }}>{t('nav.messages')}</MenuItem>
+            <MenuItem onClick={() => { setOpen(false); navigate('/account/offers'); }}>{t('nav.offers')}</MenuItem>
+            <MenuItem onClick={() => { setOpen(false); navigate('/account/viewings'); }}>{t('nav.viewings')}</MenuItem>
+            <MenuItem onClick={() => { setOpen(false); navigate('/account/ai-history'); }}>AI Geçmişi</MenuItem>
+            <MenuItem onClick={() => { setOpen(false); navigate('/account/profile'); }}>{t('nav.profile')}</MenuItem>
+            <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
+            <MenuItem onClick={() => { setOpen(false); navigate('/help'); }}>{t('nav.help')}</MenuItem>
+            <MenuItem onClick={() => { setOpen(false); navigate('/legal/kvkk'); }}>{t('nav.kvkk')}</MenuItem>
+            <div className="border-t border-slate-200 dark:border-slate-800 my-1" />
+            <MenuItem onClick={() => { setOpen(false); auth.logout(); navigate('/'); }}>{t('nav.logout')}</MenuItem>
+          </div>
+        </>
       )}
     </div>
   );
