@@ -49,6 +49,8 @@ export default function ListingDetailPage() {
   const [offerAmount, setOfferAmount] = useState<number | ''>('');
   const [viewingModal, setViewingModal] = useState(false);
   const [viewingDate, setViewingDate] = useState('');
+  const [shareModal, setShareModal] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   if (!listing) {
     return (
@@ -133,13 +135,42 @@ export default function ListingDetailPage() {
   }
 
   function share() {
-    const url = `${window.location.origin}${window.location.pathname}#/listings/${listing!.id}`;
-    if ((navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share) {
-      void (navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share!({ title: listing!.title, text: listing!.aiSummary, url });
+    setShareModal(true);
+  }
+
+  function nativeShare() {
+    if (!listing) return;
+    const url = `${window.location.origin}${window.location.pathname}#/listings/${listing.id}`;
+    const n = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
+    if (n.share) {
+      void n.share({ title: listing.title, text: listing.aiSummary, url });
+      setShareModal(false);
     } else {
       void navigator.clipboard.writeText(url);
-      alert('Bağlantı panoya kopyalandı');
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
     }
+  }
+
+  function copyLink() {
+    if (!listing) return;
+    const url = `${window.location.origin}${window.location.pathname}#/listings/${listing.id}`;
+    void navigator.clipboard.writeText(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  }
+
+  function shareOn(network: 'whatsapp' | 'x' | 'mail' | 'linkedin') {
+    if (!listing) return;
+    const url = encodeURIComponent(`${window.location.origin}${window.location.pathname}#/listings/${listing.id}`);
+    const text = encodeURIComponent(`${listing.title} — LandX`);
+    const targets: Record<string, string> = {
+      whatsapp: `https://wa.me/?text=${text}%20${url}`,
+      x: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+      mail: `mailto:?subject=${text}&body=${url}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`
+    };
+    window.open(targets[network], '_blank', 'noopener');
   }
 
   return (
@@ -341,6 +372,30 @@ export default function ListingDetailPage() {
           </div>
         </aside>
       </div>
+
+      {/* Share modal */}
+      {shareModal && (
+        <Modal title="İlanı paylaş" onClose={() => setShareModal(false)}>
+          <p className="text-sm text-fg-3 mb-3">İlan bağlantısını paylaşın:</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            <Button variant="outline" onClick={() => shareOn('whatsapp')}>WhatsApp</Button>
+            <Button variant="outline" onClick={() => shareOn('x')}>X (Twitter)</Button>
+            <Button variant="outline" onClick={() => shareOn('mail')}>E-posta</Button>
+            <Button variant="outline" onClick={() => shareOn('linkedin')}>LinkedIn</Button>
+          </div>
+          <div className="flex gap-2">
+            <input
+              readOnly
+              value={`${window.location.origin}${window.location.pathname}#/listings/${listing.id}`}
+              className="flex-1 rounded-r-2 border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs"
+            />
+            <Button onClick={copyLink}>{shareCopied ? 'Kopyalandı ✓' : 'Kopyala'}</Button>
+          </div>
+          {(navigator as Navigator & { share?: unknown }).share && (
+            <Button block variant="ghost" className="mt-2" onClick={nativeShare}>Cihaz paylaşımı</Button>
+          )}
+        </Modal>
+      )}
 
       {/* Offer modal */}
       {offerModal && (
