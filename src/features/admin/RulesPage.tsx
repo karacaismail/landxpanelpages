@@ -88,10 +88,23 @@ export default function RulesPage() {
     setNewOpen(false);
   }
 
+  function aiSuggestRule() {
+    const suggestions = [
+      { name: 'AI: Yeni satıcı 24h içinde tek ilan yayınlamadıysa hatırlat', event: 'system.cron.daily' as EcaEvent, conditions: 'roles contains "seller"\ndaysSinceSignup gt 1\nlistings.count eq 0', action: 'notify.user' },
+      { name: 'AI: 100+ favori alan ilan satıcısına "öne çıkar" önerisi', event: 'listing.viewed' as EcaEvent, conditions: 'favoriteCount gte 100', action: 'notify.user' },
+      { name: 'AI: KYC tam olmayan kullanıcıyı 7. günde uyar', event: 'system.cron.daily' as EcaEvent, conditions: 'kycLevel ne "full"\ndaysSinceSignup eq 7', action: 'email.mock' }
+    ];
+    const pick = suggestions[Math.floor(Math.random() * suggestions.length)];
+    createRule({ name: pick.name, description: 'AI tarafından önerilen kural taslağı', event: pick.event, conditions: pick.conditions, actionType: pick.action });
+  }
+
   return (
     <div>
       <SectionHeading title="ECA Kuralları" description="Event ▸ Condition ▸ Action" actions={
-        <Button iconLeft={<Plus size={16} />} onClick={() => setNewOpen(true)}>Yeni kural</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" iconLeft={<Sparkle size={16} weight="fill" />} onClick={aiSuggestRule}>AI ile öner</Button>
+          <Button iconLeft={<Plus size={16} />} onClick={() => setNewOpen(true)}>Yeni kural</Button>
+        </div>
       } />
 
       <Card className="mb-4 bg-gradient-to-br from-brand-50 to-transparent dark:from-brand-900/30">
