@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useData } from '@/store/data';
 import { SectionHeading } from '@/components/data/SectionHeading';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { DataTable, type Column } from '@/components/data/DataTable';
-import { Pencil, Plus, FlowArrow, Sparkle, Play, Pulse } from '@phosphor-icons/react';
+import { SortableList } from '@/components/ui/SortableList';
+import { Pencil, Plus, FlowArrow, Sparkle, Play, Pulse, X, FloppyDisk } from '@phosphor-icons/react';
 import type { EcaRule, EcaEvent } from '@/types/domain';
 import { evaluate } from '@/lib/eca/engine';
+import { toast } from '@/store/toast';
 
 const EVENTS: EcaEvent[] = [
   'listing.created', 'listing.updated', 'listing.status_changed', 'listing.price_changed',
@@ -15,10 +17,56 @@ const EVENTS: EcaEvent[] = [
   'system.cron.daily', 'system.cron.hourly'
 ];
 
+type Cond = EcaRule['conditions'][number];
+type Act = EcaRule['actions'][number];
+type CondItem = Cond & { id: string };
+type ActItem = Act & { id: string };
+
 export default function RulesPage() {
   const data = useData();
-  const [selected, setSelected] = useState<EcaRule | null>(data.ecaRules[0] || null);
+  const [selectedId, setSelectedId] = useState<string | null>(data.ecaRules[0]?.id || null);
+  const selected = useMemo(() => data.ecaRules.find((r) => r.id === selectedId) || null, [data.ecaRules, selectedId]);
+  const setSelected = (r: EcaRule | null) => setSelectedId(r?.id || null);
   const [dryRunResult, setDryRunResult] = useState<string>('');
+
+  // Local editable copy of conditions/actions while reordering — saved on commit
+  const [draftConds, setDraftConds] = useState<CondItem[]>([]);
+  const [draftActs, setDraftActs] = useState<ActItem[]>([]);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (!selected) { setDraftConds([]); setDraftActs([]); setDirty(false); return; }
+    setDraftConds(selected.conditions.map((c, i) => ({ ...c, id: `c-${i}` })));
+    setDraftActs(selected.actions.map((a, i) => ({ ...a, id: `a-${i}` })));
+    setDirty(false);
+  }, [selectedId, selected]);
+
+  function saveOrder() {
+    if (!selected) return;
+    const next: EcaRule = {
+      ...selected,
+      conditions: draftConds.map(({ id: _id, ...rest }) => rest as Cond),
+      actions: draftActs.map(({ id: _id, ...rest }) => rest as Act),
+      updatedAt: new Date().toISOString()
+    };
+    data.upsertRule(next);
+    setDirty(false);
+    toast('success', 'Sıra kaydedildi', `${selected.name} koşul/aksiyon sırası güncellendi.`);
+  }
+  function resetOrder() {
+    if (!selected) return;
+    setDraftConds(selected.conditions.map((c, i) => ({ ...c, id: `c-${i}` })));
+    setDraftActs(selected.actions.map((a, i) => ({ ...a, id: `a-${i}` })));
+    setDirty(false);
+  }
+  function removeCond(id: string) {
+    setDraftConds((prev) => prev.filter((c) => c.id !== id));
+    setDirty(true);
+  }
+  function removeAct(id: string) {
+    setDraftActs((prev) => prev.filter((a) => a.id !== id));
+    setDirty(true);
+  }
 
   const columns: Column<EcaRule>[] = [
     {
@@ -129,23 +177,47 @@ export default function RulesPage() {
                   <p className="text-sm text-fg-3">{selected.description}</p>
                   <div className="mt-3 space-y-2">
                     <Block label="Event"><code className="text-xs">{selected.event}</code></Block>
-                    <Block label="Conditions">
-                      {selected.conditions.length === 0 ? <em className="text-xs text-fg-3">— (her zaman)</em> : (
-                        <ul className="space-y-1 text-xs">
-                          {selected.conditions.map((c, i) => (
-                            <li key={i} className="font-mono"><code>{c.field}</code> <strong>{c.op}</strong> <code>{JSON.stringify(c.value)}</code></li>
-                          ))}
-                        </ul>
+                    <Block label={`Conditions (${draftConds.length}) — sürükle-bırak ile sırala`}>
+                      {draftConds.length === 0 ? <em className="text-xs text-fg-3">— (her zaman)</em> : (
+                        <SortableList
+                          items={draftConds}
+                          ariaLabel="Koşullar sıralı liste"
+                          onReorder={(next) => { setDraftConds(next); setDirty(true); }}
+                          renderItem={(c) => (
+                            <div className="flex items-center gap-2 text-xs">
+                              <code className="font-mono">{c.field}</code>
+                              <strong className="text-brand-700 dark:text-brand-300">{c.op}</strong>
+                              <code className="font-mono truncate flex-1">{JSON.stringify(c.value)}</code>
+                              <button onClick={() => removeCond(c.id)} className="text-fg-3 hover:text-danger" aria-label="Koşulu sil"><X size={12} /></button>
+                            </div>
+                          )}
+                        />
                       )}
                     </Block>
-                    <Block label="Actions">
-                      <ul className="space-y-1 text-xs">
-                        {selected.actions.map((a, i) => (
-                          <li key={i} className="font-mono"><code className="text-brand-700 dark:text-brand-300">{a.type}</code> {JSON.stringify(a.params).slice(0, 80)}</li>
-                        ))}
-                      </ul>
+                    <Block label={`Actions (${draftActs.length}) — sürükle-bırak ile sırala`}>
+                      {draftActs.length === 0 ? <em className="text-xs text-fg-3">— (aksiyon yok)</em> : (
+                        <SortableList
+                          items={draftActs}
+                          ariaLabel="Aksiyonlar sıralı liste"
+                          onReorder={(next) => { setDraftActs(next); setDirty(true); }}
+                          renderItem={(a) => (
+                            <div className="flex items-center gap-2 text-xs">
+                              <code className="font-mono text-brand-700 dark:text-brand-300 whitespace-nowrap">{a.type}</code>
+                              <span className="text-fg-3 truncate flex-1">{JSON.stringify(a.params).slice(0, 60)}</span>
+                              <button onClick={() => removeAct(a.id)} className="text-fg-3 hover:text-danger" aria-label="Aksiyonu sil"><X size={12} /></button>
+                            </div>
+                          )}
+                        />
+                      )}
                     </Block>
                   </div>
+                  {dirty && (
+                    <div className="mt-3 flex items-center gap-2 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-r-2 px-3 py-2">
+                      <span className="text-xs text-amber-700 dark:text-amber-300 flex-1">Kaydedilmemiş değişiklikler</span>
+                      <Button size="xs" variant="ghost" onClick={resetOrder}>Geri al</Button>
+                      <Button size="xs" iconLeft={<FloppyDisk size={12} />} onClick={saveOrder}>Kaydet</Button>
+                    </div>
+                  )}
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" variant="outline" iconLeft={<Play size={14} />} onClick={dryRun}>Dry-run</Button>
                     <Button size="sm" variant={selected.enabled ? 'danger' : 'success'} onClick={() => data.toggleRule(selected.id)}>{selected.enabled ? 'Devre dışı bırak' : 'Etkinleştir'}</Button>
