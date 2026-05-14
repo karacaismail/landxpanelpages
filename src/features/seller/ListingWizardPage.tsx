@@ -220,8 +220,10 @@ export default function ListingWizardPage() {
       <ol className="flex items-center gap-1 overflow-x-auto pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
         {STEPS.map((s, i) => (
           <li key={s.id} className={cls('flex items-center gap-1 text-xs', i === step ? 'text-brand-700 dark:text-brand-300 font-medium' : i < step ? 'text-fg-2' : 'text-fg-3')}>
-            <span className={cls('w-6 h-6 rounded-full grid place-items-center text-[10px] font-bold', i <= step ? 'bg-brand-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-fg-3')}>{i + 1}</span>
-            <span className="hidden sm:inline">{s.label}</span>
+            <button type="button" onClick={() => setStep(i)} className="inline-flex items-center gap-1 hover:opacity-80 cursor-pointer" aria-label={`${s.label} adımına git`}>
+              <span className={cls('w-6 h-6 rounded-full grid place-items-center text-[10px] font-bold transition-colors', i <= step ? 'bg-brand-500 text-white' : 'bg-slate-200 dark:bg-slate-800 text-fg-3 hover:bg-slate-300 dark:hover:bg-slate-700')}>{i + 1}</span>
+              <span className="hidden sm:inline">{s.label}</span>
+            </button>
             {i < STEPS.length - 1 && <span className="text-fg-4 mx-1">›</span>}
           </li>
         ))}
