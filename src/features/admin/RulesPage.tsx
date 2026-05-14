@@ -66,10 +66,32 @@ export default function RulesPage() {
     setDryRunResult(res.matched.length ? `Eşleşti. Çalışan aksiyonlar: ${res.emitted.map((a) => a.type).join(', ')}` : 'Eşleşmedi.');
   }
 
+  const [newOpen, setNewOpen] = useState(false);
+
+  function createRule(input: { name: string; description: string; event: EcaEvent; conditions: string; actionType: string }) {
+    const id = `r-new-${Date.now().toString(36)}`;
+    const conditions = input.conditions.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
+      const m = line.match(/^(\S+)\s+(eq|ne|gt|lt|gte|lte|contains|in|nin|regex|between)\s+(.+)$/);
+      if (!m) return null;
+      let value: unknown = m[3];
+      try { value = JSON.parse(m[3]); } catch { /* keep string */ }
+      return { field: m[1], op: m[2] as EcaRule['conditions'][number]['op'], value };
+    }).filter(Boolean) as EcaRule['conditions'];
+    const rule: EcaRule = {
+      id, name: input.name, description: input.description, event: input.event,
+      conditions, actions: [{ type: input.actionType as EcaRule['actions'][number]['type'], params: {} }],
+      enabled: false, ownerId: 'admin', history: [],
+      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+    };
+    data.upsertRule(rule);
+    setSelected(rule);
+    setNewOpen(false);
+  }
+
   return (
     <div>
       <SectionHeading title="ECA Kuralları" description="Event ▸ Condition ▸ Action" actions={
-        <Button iconLeft={<Plus size={16} />}>Yeni kural</Button>
+        <Button iconLeft={<Plus size={16} />} onClick={() => setNewOpen(true)}>Yeni kural</Button>
       } />
 
       <Card className="mb-4 bg-gradient-to-br from-brand-50 to-transparent dark:from-brand-900/30">
@@ -132,6 +154,8 @@ export default function RulesPage() {
           </div>
         </aside>
       </div>
+
+      {newOpen && <NewRuleModal events={EVENTS} onCreate={createRule} onClose={() => setNewOpen(false)} />}
     </div>
   );
 }
@@ -141,6 +165,49 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <div className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">{label}</div>
       <div className="mt-1">{children}</div>
+    </div>
+  );
+}
+
+function NewRuleModal({ events, onCreate, onClose }: { events: EcaEvent[]; onCreate: (input: { name: string; description: string; event: EcaEvent; conditions: string; actionType: string }) => void; onClose: () => void }) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [event, setEvent] = useState<EcaEvent>(events[0]);
+  const [conditions, setConditions] = useState('');
+  const [actionType, setActionType] = useState('notify.user');
+  return (
+    <div role="dialog" aria-label="Yeni kural" className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-3" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-r-4 p-4 lg:p-6 shadow-2xl space-y-3">
+        <h3 className="text-lg font-semibold">Yeni ECA kuralı</h3>
+        <div>
+          <label className="text-sm font-medium">Ad</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} className="w-full mt-1 rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[44px]" />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Açıklama</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="w-full mt-1 rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Event</label>
+          <select value={event} onChange={(e) => setEvent(e.target.value as EcaEvent)} className="w-full mt-1 rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[44px]">
+            {events.map((e) => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-sm font-medium">Koşullar (her satır: <code className="text-xs">field op value</code>)</label>
+          <textarea value={conditions} onChange={(e) => setConditions(e.target.value)} rows={3} placeholder={'tkgmStatus eq "ipotekli"\npriceChangePct gt 20'} className="w-full mt-1 rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono" />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Aksiyon tipi</label>
+          <select value={actionType} onChange={(e) => setActionType(e.target.value)} className="w-full mt-1 rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[44px]">
+            {['notify.user','notify.role','email.mock','webhook.mock','assign.to','set.field','tag.add','flag.review','ai.summarize'].map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" block onClick={onClose}>İptal</Button>
+          <Button block disabled={!name.trim()} onClick={() => onCreate({ name, description, event, conditions, actionType })}>Oluştur</Button>
+        </div>
+      </div>
     </div>
   );
 }
