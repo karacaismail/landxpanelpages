@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/store/auth';
@@ -8,6 +8,7 @@ import { DataTable, type Column } from '@/components/data/DataTable';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { RiskBadge } from '@/components/ui/RiskBadge';
 import { Button } from '@/components/ui/Button';
+import { ListingCard } from '@/components/data/ListingCard';
 import { Plus, PencilSimple, Eye, Sparkle } from '@phosphor-icons/react';
 import type { Listing } from '@/types/domain';
 import { formatPrice, formatArea } from '@/lib/utils/format';
@@ -50,13 +51,28 @@ export default function MyListingsPage() {
     }
   ];
 
+  const [view, setView] = useState<'table' | 'grid'>('table');
+
   return (
     <div>
       <SectionHeading
         title={t('nav.myListings')}
         description={`${mine.length} ilanınız`}
-        actions={<Button iconLeft={<Plus size={16} />} onClick={() => navigate('/seller/listings/new')}>{t('nav.newListing')}</Button>}
+        actions={
+          <div className="flex gap-2">
+            <div className="inline-flex rounded-r-2 border border-slate-300 dark:border-slate-700 overflow-hidden text-xs">
+              <button onClick={() => setView('table')} className={`px-3 py-2 ${view === 'table' ? 'bg-brand-500 text-white' : 'text-fg-2 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>Tablo</button>
+              <button onClick={() => setView('grid')} className={`px-3 py-2 ${view === 'grid' ? 'bg-brand-500 text-white' : 'text-fg-2 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>Izgara</button>
+            </div>
+            <Button iconLeft={<Plus size={16} />} onClick={() => navigate('/seller/listings/new')}>{t('nav.newListing')}</Button>
+          </div>
+        }
       />
+      {view === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {mine.map((l) => <ListingCard key={l.id} listing={l} />)}
+        </div>
+      ) : (
       <DataTable
         data={mine}
         columns={columns}
@@ -74,6 +90,7 @@ export default function MyListingsPage() {
           { label: 'Sil', onRun: (rows) => rows.forEach((r) => data.removeListing(r.id)), tone: 'danger' }
         ]}
       />
+      )}
     </div>
   );
 }
