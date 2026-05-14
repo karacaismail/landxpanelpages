@@ -132,19 +132,22 @@ export default function HomePage() {
         <SectionHeading title={t('home.stripCategories')} description="İmar tipine göre keşfedin" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {[
-            { id: 'konut', label: 'Konut imarlı', Icon: House, color: 'from-brand-500 to-brand-700' },
-            { id: 'tarim', label: 'Tarım arazisi', Icon: MapTrifold, color: 'from-emerald-500 to-emerald-700' },
-            { id: 'turizm', label: 'Turizm imarlı', Icon: Compass, color: 'from-sky-500 to-sky-700' },
-            { id: 'ticari', label: 'Ticari imarlı', Icon: Buildings, color: 'from-violet-500 to-violet-700' },
-            { id: 'sanayi', label: 'Sanayi imarlı', Icon: Buildings, color: 'from-zinc-500 to-zinc-700' },
-            { id: 'zeytinlik', label: 'Zeytinlik', Icon: MapTrifold, color: 'from-lime-500 to-lime-700' },
-            { id: 'karma', label: 'Karma imar', Icon: Sparkle, color: 'from-accent-500 to-accent-700' },
-            { id: 'imarsiz', label: 'İmarsız', Icon: MapTrifold, color: 'from-slate-500 to-slate-700' }
+            { id: 'konut', label: 'Konut imarlı', Icon: House, color: 'from-brand-500 to-brand-700', img: 'house' },
+            { id: 'tarim', label: 'Tarım arazisi', Icon: MapTrifold, color: 'from-emerald-500 to-emerald-700', img: 'farm' },
+            { id: 'turizm', label: 'Turizm imarlı', Icon: Compass, color: 'from-sky-500 to-sky-700', img: 'beach' },
+            { id: 'ticari', label: 'Ticari imarlı', Icon: Buildings, color: 'from-violet-500 to-violet-700', img: 'city' },
+            { id: 'sanayi', label: 'Sanayi imarlı', Icon: Buildings, color: 'from-zinc-500 to-zinc-700', img: 'industry' },
+            { id: 'zeytinlik', label: 'Zeytinlik', Icon: MapTrifold, color: 'from-lime-500 to-lime-700', img: 'olive' },
+            { id: 'karma', label: 'Karma imar', Icon: Sparkle, color: 'from-accent-500 to-accent-700', img: 'mixed' },
+            { id: 'imarsiz', label: 'İmarsız', Icon: MapTrifold, color: 'from-slate-500 to-slate-700', img: 'land' }
           ].map((c) => (
-            <Link key={c.id} to={`/listings?imar=${c.id}`} className={`relative overflow-hidden rounded-r-3 p-4 text-white bg-gradient-to-br ${c.color} hover:shadow-lg transition-shadow`}>
-              <c.Icon size={28} weight="duotone" className="opacity-80" />
-              <div className="font-medium mt-2">{c.label}</div>
-              <div className="text-xs opacity-80 mt-0.5">{liveListings.filter((l) => l.imarType === c.id).length} ilan</div>
+            <Link key={c.id} to={`/listings?imar=${c.id}`} className={`relative overflow-hidden rounded-r-3 p-4 text-white bg-gradient-to-br ${c.color} hover:shadow-lg transition-shadow group min-h-[120px]`}>
+              <img src={`https://picsum.photos/seed/landx-cat-${c.img}/400/300`} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity" />
+              <div className="relative">
+                <c.Icon size={28} weight="duotone" className="opacity-90 drop-shadow" />
+                <div className="font-medium mt-2 drop-shadow">{c.label}</div>
+                <div className="text-xs opacity-90 mt-0.5 drop-shadow">{liveListings.filter((l) => l.imarType === c.id).length} ilan</div>
+              </div>
             </Link>
           ))}
         </div>
