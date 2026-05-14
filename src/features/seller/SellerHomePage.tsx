@@ -8,7 +8,7 @@ import { Stat } from '@/components/ui/Stat';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ListingCard } from '@/components/data/ListingCard';
-import { MapPin, Briefcase, Eye, ChartLineUp, Sparkle, ArrowRight } from '@phosphor-icons/react';
+import { MapPin, Briefcase, Eye, ChartLineUp, Sparkle, ArrowRight, ChatCircle, Calendar, Plus } from '@phosphor-icons/react';
 
 export default function SellerHomePage() {
   const { t } = useTranslation();
@@ -44,6 +44,28 @@ export default function SellerHomePage() {
           <li>• Yayındaki ilanlarınızın ortalama görüntülenmesi: {Math.round(totalViews / Math.max(1, live))}. Hedef: 800+.</li>
         </ul>
       </Card>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        {[
+          { to: '/seller/listings', label: 'İlanlarım', desc: `${mine.length} kayıt`, Icon: MapPin },
+          { to: '/seller/listings/new', label: 'Yeni İlan', desc: '6 adımlı sihirbaz', Icon: Plus },
+          { to: '/seller/offers', label: 'Teklifler', desc: `${offers.filter((o) => o.status === 'pending').length} bekliyor`, Icon: Briefcase },
+          { to: '/seller/messages', label: 'Mesajlar', desc: 'Alıcı sohbetleri', Icon: ChatCircle },
+          { to: '/seller/performance', label: 'Performans', desc: 'KPI + grafik', Icon: ChartLineUp },
+          { to: '/account/viewings', label: 'Randevular', desc: 'Görme talepleri', Icon: Calendar }
+        ].map((it) => (
+          <Link key={it.to} to={it.to}>
+            <Card interactive className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-r-2 bg-brand-50 dark:bg-brand-900/30 grid place-items-center text-brand-600"><it.Icon size={20} weight="duotone" /></span>
+              <div className="flex-1">
+                <div className="font-medium">{it.label}</div>
+                <div className="text-xs text-fg-3">{it.desc}</div>
+              </div>
+              <ArrowRight size={16} className="text-fg-3" />
+            </Card>
+          </Link>
+        ))}
+      </div>
 
       <SectionHeading title="Son ilanlarınız" level={3} actions={<Link className="text-sm text-brand-700 dark:text-brand-300 inline-flex items-center gap-1 hover:underline" to="/seller/listings">Tümü <ArrowRight size={14} /></Link>} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
