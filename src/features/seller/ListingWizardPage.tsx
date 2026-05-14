@@ -264,8 +264,13 @@ export default function ListingWizardPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={verifyTkgm} loading={tkgmLoading} iconLeft={<ShieldCheck size={16} />}>TKGM ile doğrula</Button>
-            {tkgmResult && <span className="text-xs text-fg-3">{tkgmResult}</span>}
+            <span className="text-xs text-fg-3">Mock servis · 1-3sn</span>
           </div>
+          {tkgmResult && (
+            <div className={`text-sm rounded-r-2 px-3 py-2 ${tkgmResult.startsWith('Doğrulandı') ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-900/30 text-rose-800 dark:text-rose-200'}`}>
+              {tkgmResult}
+            </div>
+          )}
         </Card>
       )}
 

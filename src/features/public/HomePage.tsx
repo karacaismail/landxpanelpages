@@ -52,7 +52,16 @@ export default function HomePage() {
               </Button>
             </form>
             <div className="mt-5 text-white/80 text-sm flex flex-wrap justify-center gap-2">
-              {['İstanbul Beykoz 5000 m² imarlı 2.5M altı', 'İzmir Urla zeytinlik temiz tapu', 'Çanakkale deniz manzaralı tarla'].map((q) => (
+              {[
+                'İstanbul Beykoz 5000 m² imarlı 2.5M altı',
+                'İzmir Urla zeytinlik temiz tapu',
+                'Çanakkale deniz manzaralı tarla',
+                'Antalya Kaş turizm imarlı yatırımlık',
+                'Muğla Bodrum 1 dönüm fırsat',
+                'Yalova Çınarcık 5M altı bağ-bahçe',
+                'Bursa İznik göl manzaralı 3000 m²',
+                'Aydın Didim 10 dönüm yatırımlık'
+              ].map((q) => (
                 <button key={q} type="button" onClick={() => { setIntent(q); navigate(`/listings?q=${encodeURIComponent(q)}`); }} className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs">{q}</button>
               ))}
             </div>
