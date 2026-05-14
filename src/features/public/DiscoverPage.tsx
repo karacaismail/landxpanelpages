@@ -87,6 +87,34 @@ export default function DiscoverPage() {
     setFilters((f) => ({ ...f, ...rest }));
   }
 
+  function aiSuggestFromFavorites() {
+    if (!auth.currentUserId) { navigate('/auth?next=' + encodeURIComponent('/listings')); return; }
+    const favIds = data.favorites.filter((f) => f.userId === auth.currentUserId).map((f) => f.listingId);
+    const favs = data.listings.filter((l) => favIds.includes(l.id));
+    if (favs.length === 0) {
+      alert('Henüz favoriniz yok. Birkaç ilanı favorileyince size benzer ilanlar önerebilirim.');
+      return;
+    }
+    // En yaygın şehir, imar, tapu
+    const top = <T,>(arr: T[]): T | undefined => {
+      const m = new Map<T, number>();
+      arr.forEach((v) => m.set(v, (m.get(v) || 0) + 1));
+      return Array.from(m.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
+    };
+    const topCity = top(favs.map((f) => f.city));
+    const topImar = top(favs.map((f) => f.imarType));
+    const topTapu = top(favs.map((f) => f.tapuType));
+    const avgPrice = favs.reduce((s, l) => s + l.price, 0) / favs.length;
+    setFilters({
+      city: topCity,
+      imarType: topImar,
+      tapuType: topTapu,
+      minPrice: Math.round(avgPrice * 0.7 / 10000) * 10000,
+      maxPrice: Math.round(avgPrice * 1.3 / 10000) * 10000
+    });
+    setQ('');
+  }
+
   function saveSearch() {
     if (!auth.currentUserId) { navigate('/auth'); return; }
     data.upsertSavedSearch({
@@ -117,6 +145,7 @@ export default function DiscoverPage() {
             {q && <button onClick={() => setQ('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Temizle"><X size={14} /></button>}
           </div>
           <Button onClick={aiParse} iconLeft={<Sparkle size={16} weight="fill" />}>AI ile parse et</Button>
+          <Button variant="outline" onClick={aiSuggestFromFavorites} iconLeft={<Sparkle size={16} weight="fill" />}>Bana öner</Button>
           <FilterBar value={filters} onChange={setFilters} onClear={() => setFilters({})} />
           <Button variant="outline" iconLeft={<BookmarkSimple size={16} />} onClick={saveSearch}>Aramayı kaydet</Button>
         </div>
