@@ -24,7 +24,7 @@ export default function FavoritesPage() {
 
   return (
     <div className="max-w-[1600px] mx-auto px-3 lg:px-6 py-4 lg:py-6">
-      <SectionHeading title={t('nav.favorites')} description={`${items.length} ilan`} />
+      <SectionHeading title={t('nav.favorites')} description={`${items.length} ilan`} actions={items.length > 0 ? <Button variant="outline" onClick={() => navigate('/account/favorites/trends')}>Fiyat trendleri →</Button> : undefined} />
       {items.length === 0 ? (
         <EmptyState icon={<Heart size={48} weight="duotone" />} title={t('empty.favorites')} description="Kalp ikonuna basarak ilanları kaydedin." aiHint="Beğendiğiniz ilanları analiz edip benzerlerini önereyim mi?" cta={<Button onClick={() => navigate('/listings')}>{t('nav.discover')}</Button>} />
       ) : (
