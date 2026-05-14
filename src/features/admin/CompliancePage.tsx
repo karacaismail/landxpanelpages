@@ -3,8 +3,9 @@ import { SectionHeading } from '@/components/data/SectionHeading';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Button } from '@/components/ui/Button';
-import { CheckCircle, CircleHalf, XCircle, ShieldCheck, FileText, Clock, Download, Sparkle } from '@phosphor-icons/react';
+import { CheckCircle, CircleHalf, XCircle, ShieldCheck, FileText, Clock, Download, Sparkle, FileLock, MapPin } from '@phosphor-icons/react';
 import { cls } from '@/lib/utils/cls';
+import { toast } from '@/store/toast';
 
 type Status = 'green' | 'amber' | 'red';
 
@@ -109,6 +110,163 @@ export default function CompliancePage() {
           ))}
         </ul>
       </Card>
+
+      <VerbisRegistry />
     </div>
+  );
+}
+
+// D03 — VERBİS Article 30 records: Processing Activity Record
+interface ProcessingActivity {
+  id: string;
+  name: string;
+  controller: string;
+  purpose: string;
+  legalBasis: string;
+  dataCategories: string[];
+  recipients: string[];
+  thirdCountry: string;
+  retention: string;
+  techMeasures: string[];
+  lastReviewed: string;
+}
+
+const VERBIS_RECORDS: ProcessingActivity[] = [
+  {
+    id: 'verbis-001',
+    name: 'Kullanıcı Kayıt ve Kimlik Doğrulama',
+    controller: 'LandX Bilişim A.Ş.',
+    purpose: 'Hizmet sunumu, kimlik doğrulama, hesap güvenliği',
+    legalBasis: 'KVKK m.5/2(c) sözleşmenin kurulması, m.5/2(f) meşru menfaat',
+    dataCategories: ['kimlik', 'iletişim', 'işlem güvenliği', 'görsel kayıt (KYC)'],
+    recipients: ['Cloud sağlayıcısı (AWS Frankfurt)', 'KYC servisi (e-Devlet mock)', 'SMS sağlayıcı (Twilio TR)'],
+    thirdCountry: 'AB (yeterlilik kararı kapsamında)',
+    retention: 'Hesap kapanmasından sonra 10 yıl (TTK m.82 + 6502)',
+    techMeasures: ['TLS 1.3', 'AES-256 at rest', 'MFA', 'audit log'],
+    lastReviewed: '2026-05-08'
+  },
+  {
+    id: 'verbis-002',
+    name: 'İlan Yayınlama ve Görüntüleme',
+    controller: 'LandX Bilişim A.Ş.',
+    purpose: 'Arsa satıcı/alıcı buluşturma, ilan barındırma, fiyat keşfi',
+    legalBasis: 'KVKK m.5/2(c) sözleşmenin ifası, m.5/2(f) meşru menfaat',
+    dataCategories: ['kimlik', 'iletişim', 'konum verisi', 'finansal'],
+    recipients: ['Cloud sağlayıcısı', 'CDN (Cloudflare TR)', 'TKGM API (resmi entegrasyon)'],
+    thirdCountry: 'AB',
+    retention: 'İlan kaldırıldıktan sonra 1 yıl, audit log 7 yıl',
+    techMeasures: ['Field-level encryption (precise location)', 'Row-level security', 'PII masking'],
+    lastReviewed: '2026-05-10'
+  },
+  {
+    id: 'verbis-003',
+    name: 'Mesajlaşma ve Müzakere',
+    controller: 'LandX Bilişim A.Ş.',
+    purpose: 'Alıcı-satıcı iletişimi, teklif müzakeresi',
+    legalBasis: 'KVKK m.5/2(c) sözleşmenin ifası',
+    dataCategories: ['iletişim içeriği', 'meta-veri'],
+    recipients: ['Cloud sağlayıcısı', 'AI ajan (PII redaction sonrası, Anthropic Enterprise SLA)'],
+    thirdCountry: 'AB / ABD (Anthropic — yeterlilik kararı + SCC)',
+    retention: '3 yıl',
+    techMeasures: ['E2E olmayan ama transport+at-rest şifreli', 'AI redaction pre-LLM', 'Pre-LLM PII scrubbing'],
+    lastReviewed: '2026-05-12'
+  },
+  {
+    id: 'verbis-004',
+    name: 'AI Tabanlı Değerleme ve Risk Skoru',
+    controller: 'LandX Bilişim A.Ş.',
+    purpose: 'Otomatik fiyat tahmini, risk uyarısı, alıcı korunması',
+    legalBasis: 'KVKK m.5/2(f) meşru menfaat, m.6/2(e) bilimsel araştırma analojisi',
+    dataCategories: ['ilan meta-verisi', 'tapu kayıtları (TKGM)', 'piyasa emsalleri'],
+    recipients: ['LLM sağlayıcı (Anthropic — PII\'siz veri)', 'Vector store (kendi altyapı)'],
+    thirdCountry: 'AB / ABD',
+    retention: 'İlan ömrü boyunca + 90 gün',
+    techMeasures: ['PII pre-LLM redaction', 'Differential privacy', 'Anonymized inference'],
+    lastReviewed: '2026-05-11'
+  },
+  {
+    id: 'verbis-005',
+    name: 'Pazarlama ve Bildirim',
+    controller: 'LandX Bilişim A.Ş.',
+    purpose: 'Kayıtlı arama bildirimi, dönem kampanyaları (opt-in)',
+    legalBasis: 'KVKK m.5/1 açık rıza (opt-in)',
+    dataCategories: ['iletişim', 'tercih verisi', 'davranış izi (cookie)'],
+    recipients: ['E-posta sağlayıcı (SendGrid TR)', 'SMS sağlayıcı (Twilio)'],
+    thirdCountry: 'AB',
+    retention: 'Rıza geri çekilene kadar veya 2 yıl',
+    techMeasures: ['Opt-out one-click', 'Suppression list', 'Frequency capping'],
+    lastReviewed: '2026-05-05'
+  }
+];
+
+function VerbisRegistry() {
+  const [selected, setSelected] = useState<ProcessingActivity>(VERBIS_RECORDS[0]);
+  return (
+    <Card className="mt-4">
+      <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
+        <div>
+          <h3 className="font-medium inline-flex items-center gap-2"><FileLock size={16} weight="duotone" /> VERBİS Veri İşleme Faaliyet Kayıtları (Article 30)</h3>
+          <p className="text-sm text-fg-3 mt-1">KVKK madde 16 — Veri Sorumluları Sicili / GDPR Article 30 — Records of Processing</p>
+        </div>
+        <div className="flex gap-1.5">
+          <Button size="sm" variant="outline" iconLeft={<Download size={14} />} onClick={() => toast('success', 'VERBİS PDF', 'Resmi formatta sicil dökümü hazırlandı.')}>VERBİS PDF</Button>
+          <Button size="sm" iconLeft={<Sparkle size={14} weight="fill" />} onClick={() => toast('ai', 'AI denetim', 'Mock: 0 eksik kategori, 0 hukuki dayanak boşluğu.')}>AI denetim</Button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-3">
+        <div className="lg:col-span-1 space-y-1.5">
+          {VERBIS_RECORDS.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => setSelected(r)}
+              className={cls(
+                'w-full text-left p-2 rounded-r-2 border transition-colors',
+                selected.id === r.id ? 'border-brand-300 dark:border-brand-700 bg-brand-50/50 dark:bg-brand-900/20' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+              )}
+            >
+              <div className="font-medium text-sm">{r.name}</div>
+              <code className="text-[11px] text-fg-3">{r.id}</code>
+              <div className="text-[11px] text-fg-3 mt-0.5">Son inceleme: {r.lastReviewed}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="lg:col-span-2">
+          <Card className="!p-3">
+            <h4 className="font-medium mb-2">{selected.name}</h4>
+            <dl className="space-y-2 text-sm">
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Veri sorumlusu</dt><dd>{selected.controller}</dd></div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Amaç</dt><dd>{selected.purpose}</dd></div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Hukuki dayanak</dt><dd className="text-fg-2">{selected.legalBasis}</dd></div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Veri kategorileri</dt>
+                <dd className="flex flex-wrap gap-1 mt-1">
+                  {selected.dataCategories.map((c) => <code key={c} className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">{c}</code>)}
+                </dd>
+              </div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Veri aktarılan alıcılar</dt>
+                <dd className="text-fg-2 text-xs">
+                  <ul className="list-disc list-inside space-y-0.5">
+                    {selected.recipients.map((r) => <li key={r}>{r}</li>)}
+                  </ul>
+                </dd>
+              </div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold inline-flex items-center gap-1"><MapPin size={10} /> Yurt dışı aktarım</dt><dd>{selected.thirdCountry}</dd></div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Saklama süresi</dt><dd>{selected.retention}</dd></div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Teknik/idari tedbirler</dt>
+                <dd className="flex flex-wrap gap-1 mt-1">
+                  {selected.techMeasures.map((m) => <code key={m} className="text-[11px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">{m}</code>)}
+                </dd>
+              </div>
+              <div><dt className="text-[11px] uppercase tracking-wider text-fg-3 font-semibold">Son güncelleme</dt><dd className="text-fg-3">{selected.lastReviewed}</dd></div>
+            </dl>
+            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+              <Button size="xs" iconLeft={<FileText size={12} />} onClick={() => toast('info', 'Aktivite düzenle', 'Kayıt edit modu açıldı.')}>Düzenle</Button>
+              <Button size="xs" variant="outline" iconLeft={<Download size={12} />} onClick={() => toast('success', 'Resmi belge hazır', 'verbis-' + selected.id + '.pdf')}>Resmi belge</Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </Card>
   );
 }
