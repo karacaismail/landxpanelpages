@@ -15,13 +15,27 @@ interface MockEvent { event: EcaEvent; payload: Record<string, unknown>; describ
 
 const MOCK_EVENTS: MockEvent[] = [
   { event: 'listing.created', payload: { tkgmStatus: 'ipotekli', tapuType: 'mustakil', imarType: 'konut', aiRiskScore: 65 }, describe: 'Yeni ilan — TKGM ipotekli' },
+  { event: 'listing.created', payload: { tapuType: 'hisseli', tkgmStatus: 'temiz', imarType: 'tarim', hisseRatio: 25 }, describe: 'Hisseli tarım arazisi' },
+  { event: 'listing.created', payload: { imarType: 'zeytinlik', tkgmStatus: 'temiz', tapuType: 'mustakil', features: ['Deniz manzaralı'], imageCount: 5 }, describe: 'Zeytinlik + deniz manzaralı' },
+  { event: 'listing.created', payload: { imageCount: 2, tapuType: 'mustakil', tkgmStatus: 'temiz' }, describe: 'Az görselli yeni ilan (2 foto)' },
   { event: 'listing.price_changed', payload: { priceChangePct: 24 }, describe: 'Fiyat anomalisi — %24 değişim' },
+  { event: 'listing.price_changed', payload: { priceChangePct: -12 }, describe: 'Fiyat düşüşü — %12' },
+  { event: 'listing.price_changed', payload: { priceChangePct: 35 }, describe: 'Aşırı fiyat artışı — %35' },
+  { event: 'listing.viewed', payload: { byUser24h: 7 }, describe: 'Sıcak alıcı — 24h içinde 7 bakış' },
   { event: 'offer.received', payload: { offerToListRatio: 0.93 }, describe: 'İyi teklif — liste fiyatının %93' },
+  { event: 'offer.received', payload: { offerToListRatio: 0.65, offerCount24h: 12 }, describe: 'Yoğun talep — 12 teklif 24h' },
   { event: 'message.received', payload: { responseLatencyHours: 27, isFirstInThread: true, body: 'Merhaba' }, describe: 'Yanıtsız mesaj — 27 saat' },
+  { event: 'message.received', payload: { body: 'çoooooook teşekkürler!!!!', isFirstInThread: false }, describe: 'Şüpheli mesaj örüntü' },
   { event: 'tkgm.flag_changed', payload: { newFlag: 'serh' }, describe: 'TKGM şerh — flag değişti' },
+  { event: 'tkgm.flag_changed', payload: { newFlag: 'tedbir' }, describe: 'TKGM tedbir — flag değişti' },
   { event: 'viewing.requested', payload: { count24h: 4 }, describe: 'Popüler ilan — günde 4 randevu' },
   { event: 'user.signed_up', payload: { roles: ['seller'], kycLevel: 'phone' }, describe: 'Yeni satıcı kaydı' },
-  { event: 'listing.created', payload: { imarType: 'zeytinlik', tkgmStatus: 'temiz', tapuType: 'mustakil', features: ['Deniz manzaralı'], imageCount: 5 }, describe: 'Zeytinlik + deniz manzaralı yeni ilan' }
+  { event: 'user.signed_up', payload: { roles: ['buyer'], kycLevel: 'full' }, describe: 'Yeni full-KYC alıcı' },
+  { event: 'user.kyc_status_changed', payload: { newStatus: 'pending', ageHours: 60 }, describe: 'KYC 60 saat askıda' },
+  { event: 'system.cron.daily', payload: { status: 'draft', daysInStatus: 9 }, describe: 'Günlük cron — eski draft' },
+  { event: 'system.cron.daily', payload: { daysToExpire: 5 }, describe: 'Günlük cron — ilan yakında sona eriyor' },
+  { event: 'offer.status_changed', payload: { newStatus: 'rejected', rejectsLast30d: 4 }, describe: 'Tekrarlı red — moderatör ihbarı' },
+  { event: 'listing.updated', payload: { hasBrokenImage: true }, describe: 'Bozuk görsel tespit edildi' }
 ];
 
 let timer: ReturnType<typeof setInterval> | null = null;
