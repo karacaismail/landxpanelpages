@@ -1,51 +1,77 @@
 import { createHashRouter, Navigate, Outlet } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import type { ComponentType } from 'react';
 import { PublicLayout } from '@/components/layout/PublicLayout';
 import { PanelLayout } from '@/components/layout/PanelLayout';
 import { RouteGate } from '@/components/layout/RouteGate';
 import { PageLoading } from '@/components/ui/PageLoading';
 
-const HomePage           = lazy(() => import('@/features/public/HomePage'));
-const DiscoverPage       = lazy(() => import('@/features/public/DiscoverPage'));
-const ListingDetailPage  = lazy(() => import('@/features/public/ListingDetailPage'));
-const ComparePage        = lazy(() => import('@/features/public/ComparePage'));
-const AuthPage           = lazy(() => import('@/features/auth/AuthPage'));
-const RegisterPage       = lazy(() => import('@/features/auth/RegisterPage'));
-const SellPage           = lazy(() => import('@/features/public/SellPage'));
-const AccountPage        = lazy(() => import('@/features/public/AccountPage'));
-const FavoritesPage      = lazy(() => import('@/features/public/FavoritesPage'));
-const SavedSearchesPage  = lazy(() => import('@/features/public/SavedSearchesPage'));
-const MessagesPage       = lazy(() => import('@/features/public/MessagesPage'));
-const OffersPage         = lazy(() => import('@/features/public/OffersPage'));
-const ViewingsPage       = lazy(() => import('@/features/public/ViewingsPage'));
-const ProfilePage        = lazy(() => import('@/features/public/ProfilePage'));
-const NotificationsPage  = lazy(() => import('@/features/public/NotificationsPage'));
-const LegalPage          = lazy(() => import('@/features/public/LegalPage'));
-const HelpPage           = lazy(() => import('@/features/public/HelpPage'));
+// Retry-aware lazy: chunk hash mismatch (yeni deploy sonrası) yaşandığında 1x bekleyip yeniden dener, hâlâ başarısızsa sayfayı yeniler.
+function lazyRetry<T extends ComponentType<unknown>>(importer: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      return await importer();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message + ' ' + err.name : String(err);
+      if (/Loading chunk|ChunkLoadError|module script failed|dynamically imported module|Failed to import/i.test(msg)) {
+        await new Promise((r) => setTimeout(r, 300));
+        try { return await importer(); } catch (err2) {
+          if (!sessionStorage.getItem('landx:reload-attempt')) {
+            sessionStorage.setItem('landx:reload-attempt', String(Date.now()));
+            window.location.reload();
+          }
+          throw err2;
+        }
+      }
+      throw err;
+    }
+  });
+}
+
+const lazy_ = lazyRetry;
+
+const HomePage           = lazy_(() => import('@/features/public/HomePage'));
+const DiscoverPage       = lazy_(() => import('@/features/public/DiscoverPage'));
+const ListingDetailPage  = lazy_(() => import('@/features/public/ListingDetailPage'));
+const ComparePage        = lazy_(() => import('@/features/public/ComparePage'));
+const AuthPage           = lazy_(() => import('@/features/auth/AuthPage'));
+const RegisterPage       = lazy_(() => import('@/features/auth/RegisterPage'));
+const SellPage           = lazy_(() => import('@/features/public/SellPage'));
+const AccountPage        = lazy_(() => import('@/features/public/AccountPage'));
+const FavoritesPage      = lazy_(() => import('@/features/public/FavoritesPage'));
+const SavedSearchesPage  = lazy_(() => import('@/features/public/SavedSearchesPage'));
+const MessagesPage       = lazy_(() => import('@/features/public/MessagesPage'));
+const OffersPage         = lazy_(() => import('@/features/public/OffersPage'));
+const ViewingsPage       = lazy_(() => import('@/features/public/ViewingsPage'));
+const ProfilePage        = lazy_(() => import('@/features/public/ProfilePage'));
+const NotificationsPage  = lazy_(() => import('@/features/public/NotificationsPage'));
+const LegalPage          = lazy_(() => import('@/features/public/LegalPage'));
+const HelpPage           = lazy_(() => import('@/features/public/HelpPage'));
 
 // Seller
-const SellerHome         = lazy(() => import('@/features/seller/SellerHomePage'));
-const MyListingsPage     = lazy(() => import('@/features/seller/MyListingsPage'));
-const ListingWizardPage  = lazy(() => import('@/features/seller/ListingWizardPage'));
-const SellerOffersPage   = lazy(() => import('@/features/seller/SellerOffersPage'));
-const PerformancePage    = lazy(() => import('@/features/seller/PerformancePage'));
+const SellerHome         = lazy_(() => import('@/features/seller/SellerHomePage'));
+const MyListingsPage     = lazy_(() => import('@/features/seller/MyListingsPage'));
+const ListingWizardPage  = lazy_(() => import('@/features/seller/ListingWizardPage'));
+const SellerOffersPage   = lazy_(() => import('@/features/seller/SellerOffersPage'));
+const PerformancePage    = lazy_(() => import('@/features/seller/PerformancePage'));
 
 // Admin
-const AdminHome          = lazy(() => import('@/features/admin/AdminHomePage'));
-const ApprovalsPage      = lazy(() => import('@/features/admin/ApprovalsPage'));
-const UsersPage          = lazy(() => import('@/features/admin/UsersPage'));
-const RolesPage          = lazy(() => import('@/features/admin/RolesPage'));
-const RulesPage          = lazy(() => import('@/features/admin/RulesPage'));
-const AuditPage          = lazy(() => import('@/features/admin/AuditPage'));
-const ReportsPage        = lazy(() => import('@/features/admin/ReportsPage'));
-const AdminTkgmPage      = lazy(() => import('@/features/admin/TkgmPage'));
-const ModulesPage        = lazy(() => import('@/features/admin/ModulesPage'));
-const AdminNotifsPage    = lazy(() => import('@/features/admin/NotificationsAdminPage'));
-const SettingsPage       = lazy(() => import('@/features/admin/SettingsPage'));
-const CompliancePage     = lazy(() => import('@/features/admin/CompliancePage'));
-const PluginsPage        = lazy(() => import('@/features/admin/PluginsPage'));
+const AdminHome          = lazy_(() => import('@/features/admin/AdminHomePage'));
+const ApprovalsPage      = lazy_(() => import('@/features/admin/ApprovalsPage'));
+const UsersPage          = lazy_(() => import('@/features/admin/UsersPage'));
+const RolesPage          = lazy_(() => import('@/features/admin/RolesPage'));
+const RulesPage          = lazy_(() => import('@/features/admin/RulesPage'));
+const AuditPage          = lazy_(() => import('@/features/admin/AuditPage'));
+const ReportsPage        = lazy_(() => import('@/features/admin/ReportsPage'));
+const AdminTkgmPage      = lazy_(() => import('@/features/admin/TkgmPage'));
+const ModulesPage        = lazy_(() => import('@/features/admin/ModulesPage'));
+const ModuleDetailPage   = lazy_(() => import('@/features/admin/ModuleDetailPage'));
+const AdminNotifsPage    = lazy_(() => import('@/features/admin/NotificationsAdminPage'));
+const SettingsPage       = lazy_(() => import('@/features/admin/SettingsPage'));
+const CompliancePage     = lazy_(() => import('@/features/admin/CompliancePage'));
+const PluginsPage        = lazy_(() => import('@/features/admin/PluginsPage'));
 
-const NotFoundPage       = lazy(() => import('@/features/public/NotFoundPage'));
+const NotFoundPage       = lazy_(() => import('@/features/public/NotFoundPage'));
 
 function withSuspense(node: JSX.Element) {
   return <Suspense fallback={<PageLoading />}>{node}</Suspense>;
@@ -109,6 +135,7 @@ export const router = createHashRouter([
       { path: 'reports/:section', element: withSuspense(<ReportsPage />) },
       { path: 'tkgm', element: withSuspense(<AdminTkgmPage />) },
       { path: 'modules', element: withSuspense(<ModulesPage />) },
+      { path: 'modules/:id', element: withSuspense(<ModuleDetailPage />) },
       { path: 'notifications-templates', element: withSuspense(<AdminNotifsPage />) },
       { path: 'settings', element: withSuspense(<SettingsPage />) },
       { path: 'settings/:section', element: withSuspense(<SettingsPage />) },

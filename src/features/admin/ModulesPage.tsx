@@ -54,7 +54,10 @@ function ModuleCard({ m }: { m: ModuleCatalogEntry }) {
       <div className="text-[11px] text-fg-3 mt-2"><strong>KPI:</strong> {m.kpis}</div>
       <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
         <div className="text-xs text-fg-3">{m.faz} · {m.priority} · {m.squad}</div>
-        {m.uiRoute && <Link to={m.uiRoute}><Button size="xs" variant="ghost">UI'a git ›</Button></Link>}
+        <div className="flex gap-1">
+          <Link to={`/admin/modules/${m.id}`}><Button size="xs" variant="outline">Detay</Button></Link>
+          {m.uiRoute && <Link to={m.uiRoute}><Button size="xs" variant="ghost">UI ›</Button></Link>}
+        </div>
       </div>
     </Card>
   );
