@@ -9,6 +9,7 @@ import { GlobalShortcuts } from './GlobalShortcuts';
 import { OnboardingBanner } from '@/components/ui/OnboardingBanner';
 import { CompareBar } from './CompareBar';
 import { Breadcrumb } from './Breadcrumb';
+import { LiveRegions } from './LiveRegions';
 
 export function PublicLayout() {
   const loc = useLocation();
@@ -32,6 +33,7 @@ export function PublicLayout() {
       <AssistantDrawer />
       <NotificationsDrawer />
       <CompareBar />
+      <LiveRegions />
     </div>
   );
 }

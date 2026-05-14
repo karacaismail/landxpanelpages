@@ -15,6 +15,7 @@ import { cls } from '@/lib/utils/cls';
 import { Footer } from './Footer';
 import { startDemoRunner } from '@/lib/eca/demo-runner';
 import { Breadcrumb } from './Breadcrumb';
+import { LiveRegions } from './LiveRegions';
 
 interface Props { variant: 'seller' | 'admin'; }
 
@@ -54,6 +55,7 @@ export function PanelLayout({ variant }: Props) {
       <CommandPalette />
       <AssistantDrawer />
       <NotificationsDrawer />
+      <LiveRegions />
     </div>
   );
 }
