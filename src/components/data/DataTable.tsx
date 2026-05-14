@@ -1,7 +1,7 @@
 import { useMemo, useState, ReactNode } from 'react';
 import { cls } from '@/lib/utils/cls';
 import { Button } from '@/components/ui/Button';
-import { CaretDown, CaretUp, MagnifyingGlass, DownloadSimple, Sparkle } from '@phosphor-icons/react';
+import { CaretDown, CaretUp, MagnifyingGlass, DownloadSimple, Sparkle, Eye } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 
 export interface Column<T> {
@@ -35,6 +35,9 @@ export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, se
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [colMenuOpen, setColMenuOpen] = useState(false);
+  const visibleColumns = columns.filter((c) => !hiddenCols.has(String(c.key)));
 
   const filtered = useMemo(() => {
     if (!q.trim()) return data;
@@ -113,6 +116,37 @@ export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, se
         )}
         <div className="ml-auto flex items-center gap-2 text-sm text-fg-3">
           <span>{sorted.length} kayıt</span>
+          <div className="relative">
+            <Button size="sm" variant="outline" iconLeft={<Eye size={14} />} onClick={() => setColMenuOpen((v) => !v)}>
+              Sütunlar
+            </Button>
+            {colMenuOpen && (
+              <>
+                <button className="fixed inset-0 z-10" aria-label="Kapat" onClick={() => setColMenuOpen(false)} />
+                <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-slate-900 rounded-r-2 border border-slate-200 dark:border-slate-800 shadow-lg py-1 z-20 max-h-72 overflow-y-auto">
+                  {columns.map((c) => {
+                    const key = String(c.key);
+                    const visible = !hiddenCols.has(key);
+                    return (
+                      <label key={key} className="flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+                        <input type="checkbox" checked={visible} onChange={() => {
+                          const next = new Set(hiddenCols);
+                          visible ? next.add(key) : next.delete(key);
+                          setHiddenCols(next);
+                        }} />
+                        <span>{c.header}</span>
+                      </label>
+                    );
+                  })}
+                  {hiddenCols.size > 0 && (
+                    <button onClick={() => setHiddenCols(new Set())} className="w-full text-left px-3 py-1.5 text-xs text-brand-700 dark:text-brand-300 hover:bg-slate-50 dark:hover:bg-slate-800 border-t border-slate-200 dark:border-slate-800">
+                      Tümünü göster
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           <Button size="sm" variant="outline" iconLeft={<DownloadSimple size={14} />} onClick={exportCsv}>{t('actions.export')}</Button>
         </div>
       </div>
@@ -138,7 +172,7 @@ export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, se
                   <input type="checkbox" checked={selectedRows.length === slice.length && slice.length > 0} onChange={toggleAll} aria-label={t('actions.selectAll')} />
                 </th>
               )}
-              {columns.map((c) => (
+              {visibleColumns.map((c) => (
                 <th
                   key={String(c.key)}
                   scope="col"
@@ -163,7 +197,7 @@ export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, se
           </thead>
           <tbody>
             {slice.length === 0 ? (
-              <tr><td colSpan={(bulkActions ? 1 : 0) + columns.length} className="text-center py-12 text-fg-3">{empty || 'Kayıt yok'}</td></tr>
+              <tr><td colSpan={(bulkActions ? 1 : 0) + visibleColumns.length} className="text-center py-12 text-fg-3">{empty || 'Kayıt yok'}</td></tr>
             ) : (
               slice.map((r) => (
                 <tr
@@ -176,7 +210,7 @@ export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, se
                       <input type="checkbox" checked={selected.has(rowKey(r))} onChange={() => toggle(rowKey(r))} aria-label="Satır seç" />
                     </td>
                   )}
-                  {columns.map((c) => {
+                  {visibleColumns.map((c) => {
                     const v = c.accessor ? c.accessor(r) : (r as Record<string, unknown>)[c.key as string];
                     return (
                       <td
@@ -207,7 +241,7 @@ export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, se
                   <span className="text-xs text-fg-3">Seç</span>
                 </div>
               )}
-              {columns.map((c) => {
+              {visibleColumns.map((c) => {
                 const v = c.accessor ? c.accessor(r) : (r as Record<string, unknown>)[c.key as string];
                 return (
                   <div key={String(c.key)} className="flex items-center justify-between gap-2 py-1 text-sm">
