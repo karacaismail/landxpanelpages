@@ -59,12 +59,32 @@ export default function ProfilePage() {
         <h3 className="font-medium mb-2">Gizlilik (KVKK)</h3>
         <p className="text-sm text-fg-3">Kişisel verilerinizin işlenmesi hakkında detaylı bilgi için <a className="text-brand-700 dark:text-brand-300 hover:underline" href="#/legal/kvkk">KVKK Aydınlatma Metni</a>ni inceleyin.</p>
         <div className="flex gap-2 mt-3">
-          <Button variant="outline">Verilerimi dışa aktar (KVKK m.11)</Button>
-          <Button variant="danger">Hesabı silme talebi (KVKK m.7)</Button>
+          <Button variant="outline" onClick={() => exportMyData(me)}>Verilerimi dışa aktar (KVKK m.11)</Button>
+          <Button variant="danger" onClick={() => alert('Hesap silme talebi alındı. 30 gün içinde tüm verileriniz silinecek (mock).')}>Hesabı silme talebi (KVKK m.7)</Button>
         </div>
       </Card>
     </div>
   );
+}
+
+function exportMyData(me: import('@/types/domain').User) {
+  // Mock: collect everything visible about the user into a JSON
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    profile: {
+      id: me.id, displayName: me.displayName, email: me.email, phone: me.phone,
+      fullName: me.fullName, locale: me.locale, timezone: me.timezone,
+      kycLevel: me.kycLevel, status: me.status, roles: me.roles,
+      createdAt: me.createdAt, lastSeenAt: me.lastSeenAt,
+      preferences: me.preferences, bio: me.bio
+    },
+    note: 'Bu dosya KVKK madde 11 kapsamında ihraç edilmiştir (mock). Detaylar için kvkk@landx.test'
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `landx-data-${me.id}-${Date.now()}.json`;
+  a.click();
 }
 
 function ToggleRow({ label, initial }: { label: string; initial: boolean }) {
