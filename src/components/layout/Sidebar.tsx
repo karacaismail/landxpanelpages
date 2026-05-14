@@ -5,7 +5,7 @@ import { cls } from '@/lib/utils/cls';
 import {
   ChartBar, CheckSquare, Clock, FlowArrow, House, IdentificationCard, MapPin,
   Buildings, Gear, Users, ShieldCheck, BellSimple, PuzzlePiece, X,
-  PresentationChart, Stack, Briefcase, FileText
+  PresentationChart, Stack, Briefcase, FileText, Brain, Robot, Code
 } from '@phosphor-icons/react';
 
 interface Item {
@@ -31,6 +31,9 @@ const ADMIN_ITEMS: Item[] = [
   { to: '/admin/roles', label: 'roles', Icon: ShieldCheck },
   { to: '/admin/rules', label: 'rules', Icon: FlowArrow },
   { to: '/admin/agent-tasks', label: 'agentTasks', Icon: PuzzlePiece },
+  { to: '/admin/agent-registry', label: 'agentRegistry', Icon: Robot },
+  { to: '/admin/ai-ops', label: 'aiOps', Icon: Brain },
+  { to: '/admin/api-explorer', label: 'apiExplorer', Icon: Code },
   { to: '/admin/tenant', label: 'tenant', Icon: Buildings },
   { to: '/admin/audit', label: 'audit', Icon: Clock },
   { to: '/admin/reports', label: 'reports', Icon: PresentationChart },

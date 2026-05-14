@@ -74,6 +74,9 @@ const AdminNotifsPage    = lazy_(() => import('@/features/admin/NotificationsAdm
 const SettingsPage       = lazy_(() => import('@/features/admin/SettingsPage'));
 const CompliancePage     = lazy_(() => import('@/features/admin/CompliancePage'));
 const PluginsPage        = lazy_(() => import('@/features/admin/PluginsPage'));
+const AiOpsPage          = lazy_(() => import('@/features/admin/AiOpsPage'));
+const AgentRegistryPage  = lazy_(() => import('@/features/admin/AgentRegistryPage'));
+const ApiExplorerPage    = lazy_(() => import('@/features/admin/ApiExplorerPage'));
 
 const NotFoundPage       = lazy_(() => import('@/features/public/NotFoundPage'));
 
@@ -149,7 +152,12 @@ export const router = createHashRouter([
       { path: 'settings/:section', element: withSuspense(<SettingsPage />) },
       { path: 'compliance', element: withSuspense(<CompliancePage />) },
       { path: 'plugins', element: withSuspense(<PluginsPage />) },
-      { path: 'plugins/:section', element: withSuspense(<PluginsPage />) }
+      { path: 'plugins/:section', element: withSuspense(<PluginsPage />) },
+      { path: 'ai-ops', element: withSuspense(<AiOpsPage />) },
+      { path: 'ai-ops/:section', element: withSuspense(<AiOpsPage />) },
+      { path: 'agent-registry', element: withSuspense(<AgentRegistryPage />) },
+      { path: 'agent-registry/:section', element: withSuspense(<AgentRegistryPage />) },
+      { path: 'api-explorer', element: withSuspense(<ApiExplorerPage />) }
     ]
   },
   { path: '*', element: <Navigate to="/" replace /> }
