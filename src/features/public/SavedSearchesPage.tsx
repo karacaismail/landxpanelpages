@@ -42,7 +42,20 @@ export default function SavedSearchesPage() {
               </div>
               <div className="text-xs text-fg-3 mb-3">Eşleşen: <strong className="text-fg-1">{s.matchCount}</strong></div>
               <div className="flex gap-2">
-                <Button size="sm" iconLeft={<MagnifyingGlass size={14} />} onClick={() => navigate(`/listings?q=${encodeURIComponent(s.filters.query || s.name)}`)}>Ara</Button>
+                <Button size="sm" iconLeft={<MagnifyingGlass size={14} />} onClick={() => {
+                  const params = new URLSearchParams();
+                  if (s.filters.query) params.set('q', s.filters.query);
+                  if (s.filters.city) params.set('city', s.filters.city);
+                  if (s.filters.district) params.set('district', s.filters.district);
+                  if (s.filters.imarType) params.set('imar', s.filters.imarType);
+                  if (s.filters.tkgmStatus) params.set('tkgm', s.filters.tkgmStatus);
+                  if (s.filters.tapuType) params.set('tapu', s.filters.tapuType);
+                  if (s.filters.minPrice) params.set('minPrice', String(s.filters.minPrice));
+                  if (s.filters.maxPrice) params.set('maxPrice', String(s.filters.maxPrice));
+                  if (s.filters.minArea) params.set('minArea', String(s.filters.minArea));
+                  if (s.filters.maxArea) params.set('maxArea', String(s.filters.maxArea));
+                  navigate(`/listings?${params.toString()}`);
+                }}>Ara</Button>
                 <Button size="sm" variant="outline" iconLeft={<Trash size={14} />} onClick={() => data.removeSavedSearch(s.id)}>Sil</Button>
               </div>
             </Card>

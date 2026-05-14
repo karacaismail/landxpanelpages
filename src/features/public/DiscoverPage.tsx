@@ -32,6 +32,14 @@ export default function DiscoverPage() {
     const initial: SavedSearchFilters = {};
     if (sp.get('q')) Object.assign(initial, parseQuery(sp.get('q')!));
     if (sp.get('imar')) initial.imarType = sp.get('imar') as never;
+    if (sp.get('city')) initial.city = sp.get('city')!;
+    if (sp.get('district')) initial.district = sp.get('district')!;
+    if (sp.get('tkgm')) initial.tkgmStatus = sp.get('tkgm') as never;
+    if (sp.get('tapu')) initial.tapuType = sp.get('tapu') as never;
+    if (sp.get('minPrice')) initial.minPrice = Number(sp.get('minPrice'));
+    if (sp.get('maxPrice')) initial.maxPrice = Number(sp.get('maxPrice'));
+    if (sp.get('minArea')) initial.minArea = Number(sp.get('minArea'));
+    if (sp.get('maxArea')) initial.maxArea = Number(sp.get('maxArea'));
     return initial;
   });
 

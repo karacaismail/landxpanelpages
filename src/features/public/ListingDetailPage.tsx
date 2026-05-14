@@ -40,6 +40,11 @@ export default function ListingDetailPage() {
       .slice(0, 6);
   }, [data.listings, listing]);
 
+  const sellerOther = useMemo(() => {
+    if (!listing) return [];
+    return data.listings.filter((l) => l.id !== listing.id && l.ownerId === listing.ownerId && l.status === 'live').slice(0, 3);
+  }, [data.listings, listing]);
+
   const [offerModal, setOfferModal] = useState(false);
   const [offerAmount, setOfferAmount] = useState<number | ''>('');
   const [viewingModal, setViewingModal] = useState(false);
@@ -304,6 +309,24 @@ export default function ListingDetailPage() {
                   </div>
                 </Link>
                 {seller.bio && <p className="text-sm text-fg-3 mt-3">{seller.bio}</p>}
+                {sellerOther.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <div className="text-xs uppercase tracking-wider text-fg-3 font-semibold mb-2">Bu satıcının diğer ilanları</div>
+                    <ul className="space-y-1.5">
+                      {sellerOther.map((o) => (
+                        <li key={o.id}>
+                          <Link to={`/listings/${o.id}`} className="flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-r-2 p-1 -mx-1">
+                            <img src={o.images[0]?.thumbUrl} alt="" className="w-10 h-10 rounded-r-1 object-cover bg-slate-200" />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium truncate">{o.title}</div>
+                              <div className="text-xs text-fg-3 truncate">{o.city} · {formatPrice(o.price, locale)}</div>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </Card>
             )}
 
