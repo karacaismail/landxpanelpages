@@ -86,6 +86,32 @@ export default function HomePage() {
         ))}
       </section>
 
+      {/* AI günün önerisi */}
+      {(() => {
+        const featured = forYou[0];
+        if (!featured) return null;
+        return (
+          <section className="max-w-[1600px] mx-auto px-4 lg:px-6">
+            <Link to={`/listings/${featured.id}`} className="block rounded-r-3 overflow-hidden bg-white dark:bg-slate-900 border border-brand-200/60 dark:border-brand-700/40 hover:shadow-lg transition-shadow">
+              <div className="grid md:grid-cols-2">
+                <img src={featured.images[0]?.url} alt="" className="w-full h-56 md:h-full object-cover bg-slate-200" />
+                <div className="p-5 lg:p-6 flex flex-col justify-center">
+                  <div className="inline-flex items-center gap-1 mb-2"><Sparkle size={14} weight="fill" className="text-brand-500" /><span className="text-xs uppercase tracking-wider font-semibold text-brand-700 dark:text-brand-300">Günün AI önerisi</span></div>
+                  <h2 className="text-xl lg:text-2xl font-semibold">{featured.title}</h2>
+                  <p className="text-sm text-fg-3 mt-1">{featured.city} · {featured.district} · {formatPrice(featured.price, locale)}</p>
+                  <p className="text-sm text-fg-2 mt-3 line-clamp-3">{featured.aiSummary}</p>
+                  <div className="mt-3 inline-flex items-center gap-2 text-xs text-fg-3">
+                    <span>Risk: {featured.aiRiskScore}/100</span>
+                    <span>·</span>
+                    <span>Değerleme güveni: %{Math.round(featured.aiValuation.confidence * 100)}</span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </section>
+        );
+      })()}
+
       {/* Sizin için */}
       <Strip title={t('home.stripForYou')} description="AI değerleme güveni yüksek ilanlar" cta={<Link to="/listings" className="text-sm text-brand-700 dark:text-brand-300 inline-flex items-center gap-1 hover:underline">Tümü <ArrowRight size={14} /></Link>}>
         {forYou.map((l) => <ListingCard key={l.id} listing={l} hideStatus />)}
