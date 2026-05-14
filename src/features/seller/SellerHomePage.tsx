@@ -36,14 +36,34 @@ export default function SellerHomePage() {
         <Stat label="Bekleyen teklif" value={offers.filter((o) => o.status === 'pending').length} icon={<Briefcase size={20} weight="fill" />} />
       </div>
 
-      <Card className="mb-6 bg-gradient-to-br from-brand-50 to-transparent dark:from-brand-900/30">
-        <div className="flex items-center gap-2 mb-2"><Sparkle size={16} weight="fill" className="text-brand-500" /><span className="font-medium">AI önerileri</span></div>
-        <ul className="text-sm text-fg-2 space-y-1">
-          {drafts > 0 && <li>• {drafts} taslak ilanınız var. AI ile başlık ve açıklamayı zenginleştirelim mi?</li>}
-          {offers.filter((o) => o.status === 'pending').length > 0 && <li>• {offers.filter((o) => o.status === 'pending').length} bekleyen teklif var. Liste fiyatınızın %90 üzerindekilere otomatik kabul kuralı önerebilirim.</li>}
-          <li>• Yayındaki ilanlarınızın ortalama görüntülenmesi: {Math.round(totalViews / Math.max(1, live))}. Hedef: 800+.</li>
-        </ul>
-      </Card>
+      <div className="grid lg:grid-cols-2 gap-4 mb-6">
+        <Card className="bg-gradient-to-br from-brand-50 to-transparent dark:from-brand-900/30">
+          <div className="flex items-center gap-2 mb-2"><Sparkle size={16} weight="fill" className="text-brand-500" /><span className="font-medium">AI önerileri</span></div>
+          <ul className="text-sm text-fg-2 space-y-1">
+            {drafts > 0 && <li>• {drafts} taslak ilanınız var. AI ile başlık ve açıklamayı zenginleştirelim mi?</li>}
+            {offers.filter((o) => o.status === 'pending').length > 0 && <li>• {offers.filter((o) => o.status === 'pending').length} bekleyen teklif var. Liste fiyatınızın %90 üzerindekilere otomatik kabul kuralı önerebilirim.</li>}
+            <li>• Yayındaki ilanlarınızın ortalama görüntülenmesi: {Math.round(totalViews / Math.max(1, live))}. Hedef: 800+.</li>
+            {mine.some((l) => l.images.length < 3) && <li>• {mine.filter((l) => l.images.length < 3).length} ilanın görsel sayısı 3'ün altında. Fotoğraf ekleyerek görüntülenmeyi +%40 artırın.</li>}
+          </ul>
+        </Card>
+
+        <Card>
+          <div className="flex items-center gap-2 mb-2"><span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-medium">Son etkileşimler</span></div>
+          <ul className="text-sm divide-y divide-slate-100 dark:divide-slate-800">
+            {offers.slice(0, 4).map((o) => {
+              const listing = mine.find((l) => l.id === o.listingId);
+              return (
+                <li key={o.id} className="py-1.5 flex items-center gap-2">
+                  <span className="text-xs text-fg-3 shrink-0">teklif</span>
+                  <span className="flex-1 truncate text-fg-2">{listing?.title || o.listingId}</span>
+                  <span className="text-xs font-medium">{o.amount.toLocaleString('tr-TR')} ₺</span>
+                </li>
+              );
+            })}
+            {offers.length === 0 && <li className="py-2 text-xs text-fg-3">Henüz teklif yok.</li>}
+          </ul>
+        </Card>
+      </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
         {[
