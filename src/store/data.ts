@@ -10,6 +10,7 @@ interface DataState extends SeededDB {
   setListingStatus: (id: string, status: Listing['status']) => void;
   upsertOffer: (o: Offer) => void;
   addMessage: (m: Message) => void;
+  upsertUser: (u: import('@/types/domain').User) => void;
   toggleFavorite: (userId: string, listingId: string) => void;
   upsertSavedSearch: (s: SavedSearch) => void;
   removeSavedSearch: (id: string) => void;
@@ -38,6 +39,7 @@ export const useData = create<DataState>((set, get) => ({
 
   upsertOffer: (o) => set((s) => ({ offers: replaceOrAppend(s.offers, o) })),
   addMessage: (m) => set((s) => ({ messages: [...s.messages, m] })),
+  upsertUser: (u) => set((s) => ({ users: replaceOrAppend(s.users, u) })),
 
   toggleFavorite: (userId, listingId) => set((s) => {
     const existing = s.favorites.find((f) => f.userId === userId && f.listingId === listingId);

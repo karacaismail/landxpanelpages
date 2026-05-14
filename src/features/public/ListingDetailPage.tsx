@@ -106,6 +106,27 @@ export default function ListingDetailPage() {
     navigate('/account/viewings');
   }
 
+  function openOrCreateThread() {
+    if (!auth.currentUserId) { navigate('/auth?next=' + encodeURIComponent(`/listings/${listing!.id}`)); return; }
+    if (!listing) return;
+    const existing = data.threads.find((th) => th.participantIds.includes(auth.currentUserId!) && th.participantIds.includes(listing.ownerId) && th.listingId === listing.id);
+    if (!existing) {
+      const threadId = `th-new-${Date.now().toString(36)}`;
+      const greeting = {
+        id: `m-${threadId}-1`,
+        threadId,
+        senderId: auth.currentUserId,
+        body: `Merhaba, "${listing.title}" ilanınızla ilgileniyorum. Detay alabilir miyim?`,
+        createdAt: new Date().toISOString(),
+        readBy: [auth.currentUserId],
+        aiSuggestedReplies: ['Merhaba, tabii. Nasıl yardımcı olabilirim?', 'Görme randevusu için tarih önerebilirim.']
+      };
+      data.addMessage(greeting);
+      // best-effort thread record (DataStore doesn't have upsertThread, addMessage suffices)
+    }
+    navigate('/account/messages');
+  }
+
   function share() {
     const url = `${window.location.origin}${window.location.pathname}#/listings/${listing!.id}`;
     if ((navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share) {
@@ -248,7 +269,7 @@ export default function ListingDetailPage() {
                 <Button variant="outline" iconLeft={<ShareNetwork size={16} />} onClick={share}>{t('actions.share')}</Button>
               </div>
               <div className="grid grid-cols-1 gap-2 mt-2">
-                <Button iconLeft={<ChatCircle size={16} />} onClick={() => navigate('/account/messages')}>{t('listing.actionMessage')}</Button>
+                <Button iconLeft={<ChatCircle size={16} />} onClick={openOrCreateThread}>{t('listing.actionMessage')}</Button>
                 <Button variant="secondary" iconLeft={<CurrencyCircleDollar size={16} />} onClick={() => setOfferModal(true)}>{t('listing.actionOffer')}</Button>
                 <Button variant="outline" iconLeft={<Calendar size={16} />} onClick={() => setViewingModal(true)}>{t('listing.actionViewing')}</Button>
               </div>
