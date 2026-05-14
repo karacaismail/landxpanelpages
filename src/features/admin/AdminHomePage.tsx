@@ -5,7 +5,7 @@ import { Stat } from '@/components/ui/Stat';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/data/SectionHeading';
 import { Button } from '@/components/ui/Button';
-import { Users, MapPin, FlowArrow, ShieldCheck, Sparkle, ArrowRight, Buildings, CheckSquare, Briefcase, ChartLineUp } from '@phosphor-icons/react';
+import { Users, MapPin, FlowArrow, ShieldCheck, Sparkle, ArrowRight, Buildings, CheckSquare, Briefcase, ChartLineUp, Clock } from '@phosphor-icons/react';
 
 export default function AdminHomePage() {
   const data = useData();
@@ -47,6 +47,8 @@ export default function AdminHomePage() {
         </div>
       </Card>
 
+      <RecentActivity />
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {[
           { to: '/admin/approvals', label: 'Onaylar', desc: `${stats.pending} bekleyen`, Icon: CheckSquare },
@@ -69,5 +71,30 @@ export default function AdminHomePage() {
         ))}
       </div>
     </div>
+  );
+}
+
+function RecentActivity() {
+  const data = useData();
+  const recent = data.audit.slice(0, 8);
+  return (
+    <Card className="mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-medium inline-flex items-center gap-2"><Clock size={16} weight="duotone" /> Son aktivite</h3>
+        <Link to="/admin/audit" className="text-xs text-brand-700 dark:text-brand-300 hover:underline inline-flex items-center gap-1">Denetim İzi <ArrowRight size={12} /></Link>
+      </div>
+      <ul className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+        {recent.map((a) => {
+          const u = data.users.find((x) => x.id === a.principalId);
+          return (
+            <li key={a.id} className="py-2 flex items-center gap-3">
+              <code className="text-[11px] text-brand-700 dark:text-brand-300 shrink-0">{a.action}</code>
+              <span className="text-fg-2 truncate flex-1">{a.resourceType}:{a.resourceId}</span>
+              <span className="text-xs text-fg-3 shrink-0">{u?.displayName || a.principalId}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
   );
 }

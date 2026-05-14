@@ -46,6 +46,8 @@ export default function AccountPage() {
         }
       />
 
+      <KycProgress kycLevel={me.kycLevel} />
+
       <div className="rounded-r-3 bg-gradient-to-br from-brand-50 to-transparent dark:from-brand-900/30 border border-brand-200/60 dark:border-brand-700/40 p-4 mb-4">
         <div className="inline-flex items-center gap-2 text-sm font-medium mb-1">
           <Sparkle size={16} weight="fill" className="text-brand-500" /> AI özet
@@ -79,6 +81,39 @@ export default function AccountPage() {
             </Card>
           </Link>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function KycProgress({ kycLevel }: { kycLevel: import('@/types/domain').KycLevel }) {
+  const steps: Array<{ id: import('@/types/domain').KycLevel; label: string }> = [
+    { id: 'phone', label: 'Telefon doğrulama' },
+    { id: 'email', label: 'E-posta doğrulama' },
+    { id: 'identity', label: 'Kimlik doğrulama' },
+    { id: 'full', label: 'Tam profil' }
+  ];
+  const order: Record<import('@/types/domain').KycLevel, number> = { none: 0, phone: 1, email: 2, identity: 3, full: 4 };
+  const current = order[kycLevel];
+  const pct = Math.round((current / 4) * 100);
+  return (
+    <div className="rounded-r-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-medium text-sm">Hesap güvenliği</div>
+        <div className="text-xs text-fg-3">%{pct} tamamlandı</div>
+      </div>
+      <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-brand-500 to-accent-500 transition-all" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+        {steps.map((s) => {
+          const done = order[s.id] <= current;
+          return (
+            <div key={s.id} className={`rounded-r-2 px-2 py-1.5 text-xs border ${done ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-800 text-fg-3'}`}>
+              <span className="inline-flex items-center gap-1">{done ? '✓' : '○'} {s.label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
