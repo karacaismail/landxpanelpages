@@ -311,7 +311,12 @@ export default function ListingDetailPage() {
           {/* Similar */}
           {similar.length > 0 && (
             <div>
-              <h3 className="font-medium mb-3">{t('listing.similar')}</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="font-medium">{t('listing.similar')}</h3>
+                <span className="inline-flex items-center gap-1 text-[11px] text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/30 rounded-full px-2 py-0.5">
+                  <Sparkle size={10} weight="fill" /> AI sıraladı: aynı şehir/imar
+                </span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {similar.map((s) => <ListingCard key={s.id} listing={s} hideStatus />)}
               </div>
