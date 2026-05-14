@@ -13,7 +13,16 @@ import type { Listing } from '@/types/domain';
 
 export default function ApprovalsPage() {
   const data = useData();
-  const queue = useMemo(() => data.listings.filter((l) => l.status === 'review' || l.status === 'draft'), [data.listings]);
+  const [riskFilter, setRiskFilter] = useState<'all' | 'low' | 'mid' | 'high'>('all');
+  const [tkgmFilter, setTkgmFilter] = useState<'all' | 'temiz' | 'ipotekli' | 'serh' | 'tedbir' | 'bilinmiyor'>('all');
+  const queue = useMemo(() => data.listings.filter((l) => {
+    if (l.status !== 'review' && l.status !== 'draft') return false;
+    if (riskFilter === 'low' && l.aiRiskScore >= 30) return false;
+    if (riskFilter === 'mid' && (l.aiRiskScore < 30 || l.aiRiskScore >= 60)) return false;
+    if (riskFilter === 'high' && l.aiRiskScore < 60) return false;
+    if (tkgmFilter !== 'all' && l.tkgmStatus !== tkgmFilter) return false;
+    return true;
+  }), [data.listings, riskFilter, tkgmFilter]);
 
   const [selected, setSelected] = useState<Listing | null>(queue[0] || null);
   const [rejectModal, setRejectModal] = useState(false);
@@ -72,6 +81,21 @@ export default function ApprovalsPage() {
   return (
     <div>
       <SectionHeading title="Onay Kuyruğu" description={`${queue.length} ilan bekliyor`} />
+
+      <div className="flex flex-wrap gap-2 mb-3 items-center">
+        <span className="text-xs text-fg-3">Risk:</span>
+        {(['all','low','mid','high'] as const).map((r) => (
+          <button key={r} onClick={() => setRiskFilter(r)} className={`rounded-full px-3 py-1 text-xs border ${riskFilter === r ? 'bg-brand-100 dark:bg-brand-900/40 border-brand-300 dark:border-brand-700 text-brand-800 dark:text-brand-200' : 'border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-fg-2'}`}>
+            {r === 'all' ? 'Tümü' : r === 'low' ? 'Düşük' : r === 'mid' ? 'Orta' : 'Yüksek'}
+          </button>
+        ))}
+        <span className="text-xs text-fg-3 ml-3">TKGM:</span>
+        {(['all','temiz','ipotekli','serh','tedbir','bilinmiyor'] as const).map((r) => (
+          <button key={r} onClick={() => setTkgmFilter(r)} className={`rounded-full px-3 py-1 text-xs border ${tkgmFilter === r ? 'bg-brand-100 dark:bg-brand-900/40 border-brand-300 dark:border-brand-700 text-brand-800 dark:text-brand-200' : 'border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-fg-2'}`}>
+            {r === 'all' ? 'Tümü' : r}
+          </button>
+        ))}
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
