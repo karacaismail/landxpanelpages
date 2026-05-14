@@ -69,6 +69,26 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Hızlı filtre chip'leri */}
+      <section className="max-w-[1600px] mx-auto px-4 lg:px-6 pt-6 -mb-2 flex flex-wrap gap-1.5 justify-center">
+        {[
+          { label: 'Konut imarlı', q: 'imar=konut' },
+          { label: 'Tarım', q: 'imar=tarim' },
+          { label: 'Zeytinlik', q: 'imar=zeytinlik' },
+          { label: 'Turizm', q: 'imar=turizm' },
+          { label: 'Temiz tapu', q: 'tkgm=temiz' },
+          { label: 'Müstakil', q: 'tapu=mustakil' },
+          { label: '5M ₺ altı', q: 'maxPrice=5000000' },
+          { label: 'İstanbul', q: 'city=İstanbul' },
+          { label: 'Muğla', q: 'city=Muğla' },
+          { label: 'Antalya', q: 'city=Antalya' }
+        ].map((c) => (
+          <Link key={c.label} to={`/listings?${c.q}`} className="text-xs px-3 py-1 rounded-full border border-slate-300 dark:border-slate-700 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 dark:hover:border-brand-700">
+            {c.label}
+          </Link>
+        ))}
+      </section>
+
       {/* Stats / quick highlights */}
       <section className="max-w-[1600px] mx-auto px-4 lg:px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
         {[
