@@ -67,6 +67,7 @@ const ReportsPage        = lazy_(() => import('@/features/admin/ReportsPage'));
 const AdminTkgmPage      = lazy_(() => import('@/features/admin/TkgmPage'));
 const ModulesPage        = lazy_(() => import('@/features/admin/ModulesPage'));
 const ModuleDetailPage   = lazy_(() => import('@/features/admin/ModuleDetailPage'));
+const AgentTasksPage     = lazy_(() => import('@/features/admin/AgentTasksPage'));
 const AdminNotifsPage    = lazy_(() => import('@/features/admin/NotificationsAdminPage'));
 const SettingsPage       = lazy_(() => import('@/features/admin/SettingsPage'));
 const CompliancePage     = lazy_(() => import('@/features/admin/CompliancePage'));
@@ -138,6 +139,7 @@ export const router = createHashRouter([
       { path: 'tkgm', element: withSuspense(<AdminTkgmPage />) },
       { path: 'modules', element: withSuspense(<ModulesPage />) },
       { path: 'modules/:id', element: withSuspense(<ModuleDetailPage />) },
+      { path: 'agent-tasks', element: withSuspense(<AgentTasksPage />) },
       { path: 'notifications-templates', element: withSuspense(<AdminNotifsPage />) },
       { path: 'settings', element: withSuspense(<SettingsPage />) },
       { path: 'settings/:section', element: withSuspense(<SettingsPage />) },

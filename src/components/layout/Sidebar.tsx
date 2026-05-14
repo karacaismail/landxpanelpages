@@ -30,6 +30,7 @@ const ADMIN_ITEMS: Item[] = [
   { to: '/admin/users', label: 'users', Icon: Users },
   { to: '/admin/roles', label: 'roles', Icon: ShieldCheck },
   { to: '/admin/rules', label: 'rules', Icon: FlowArrow },
+  { to: '/admin/agent-tasks', label: 'agentTasks', Icon: PuzzlePiece },
   { to: '/admin/audit', label: 'audit', Icon: Clock },
   { to: '/admin/reports', label: 'reports', Icon: PresentationChart },
   { to: '/admin/tkgm', label: 'tkgm', Icon: Buildings },
