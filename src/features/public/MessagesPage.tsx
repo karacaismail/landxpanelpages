@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/store/auth';
 import { useData } from '@/store/data';
@@ -11,6 +11,25 @@ import { cls } from '@/lib/utils/cls';
 import { formatRelTime } from '@/lib/utils/format';
 import { nanoid } from 'nanoid';
 import type { Message } from '@/types/domain';
+
+const MOCK_REPLIES_TR = [
+  'Teşekkürler, en kısa sürede dönüyorum.',
+  'Bu konuda ek bilgi gönderebilir misiniz?',
+  'Görüşme için hangi saat uygun?',
+  'Fotoğrafları paylaşabilirim, ister misiniz?',
+  'TKGM evraklarını gözden geçireyim.',
+  'Teklifinizi değerlendiriyorum, kısa süre içinde yanıt vereceğim.',
+  'Anladım, ailem ile görüşüp dönüş yapacağım.'
+];
+const MOCK_REPLIES_EN = [
+  'Thanks, I will get back to you shortly.',
+  'Could you send more details?',
+  'What time works best for a call?',
+  'I can share the photos if you like.',
+  'Let me review the title deed documents.',
+  'I am evaluating your offer, will respond soon.',
+  'Understood, I will discuss with my family and reply.'
+];
 
 function dayLabel(iso: string, locale: 'tr' | 'en'): string {
   const d = new Date(iso);
@@ -36,9 +55,65 @@ export default function MessagesPage() {
 
   const [activeId, setActiveId] = useState<string | null>(myThreads[0]?.id || null);
   const [draft, setDraft] = useState('');
+  const [typingBy, setTypingBy] = useState<Record<string, string>>({});
+  const tickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const active = myThreads.find((th) => th.id === activeId) || null;
   const messages = active ? data.messages.filter((m) => m.threadId === active.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt)) : [];
+
+  // Mock typing + auto-reply: rastgele aralıklarla "diğer taraf yazıyor" sonra otomatik yanıt
+  useEffect(() => {
+    if (!me || myThreads.length === 0) return;
+    let cancelled = false;
+
+    const scheduleNext = (delay: number) => {
+      tickRef.current = setTimeout(() => {
+        if (cancelled) return;
+        const candidates = myThreads.filter((th) => {
+          const last = data.messages.filter((m) => m.threadId === th.id).slice(-1)[0];
+          return last && last.senderId === me.id;
+        });
+        if (candidates.length === 0) {
+          scheduleNext(20_000 + Math.random() * 25_000);
+          return;
+        }
+        const th = candidates[Math.floor(Math.random() * candidates.length)];
+        const other = th.participantIds.find((id) => id !== me.id);
+        if (!other) {
+          scheduleNext(25_000);
+          return;
+        }
+        setTypingBy((prev) => ({ ...prev, [th.id]: other }));
+        const typingDuration = 2500 + Math.random() * 2500;
+        setTimeout(() => {
+          if (cancelled) return;
+          setTypingBy((prev) => {
+            const next = { ...prev };
+            delete next[th.id];
+            return next;
+          });
+          const pool = locale === 'en' ? MOCK_REPLIES_EN : MOCK_REPLIES_TR;
+          const body = pool[Math.floor(Math.random() * pool.length)];
+          data.addMessage({
+            id: `m-${nanoid(6)}`,
+            threadId: th.id,
+            senderId: other,
+            body,
+            createdAt: new Date().toISOString(),
+            readBy: [other]
+          });
+          scheduleNext(25_000 + Math.random() * 30_000);
+        }, typingDuration);
+      }, delay);
+    };
+
+    scheduleNext(15_000 + Math.random() * 10_000);
+    return () => {
+      cancelled = true;
+      if (tickRef.current) clearTimeout(tickRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.id, myThreads.length]);
 
   function send() {
     if (!me || !active || !draft.trim()) return;
@@ -89,7 +164,11 @@ export default function MessagesPage() {
                       <span className="font-medium text-sm truncate">{otherUser?.displayName}</span>
                       <span className="text-[11px] text-fg-3 ml-auto shrink-0">{formatRelTime(th.lastMessageAt, locale)}</span>
                     </div>
-                    <div className="text-xs text-fg-3 truncate mt-0.5">{lastMsg?.body}</div>
+                    <div className="text-xs text-fg-3 truncate mt-0.5">
+                      {typingBy[th.id]
+                        ? <span className="text-brand-600 dark:text-brand-400 italic">{locale === 'en' ? 'typing…' : 'yazıyor…'}</span>
+                        : lastMsg?.body}
+                    </div>
                     {th.topic && <div className="text-[11px] text-brand-700 dark:text-brand-300 truncate mt-0.5">{th.topic}</div>}
                   </div>
                   {unread > 0 && <span className="self-start mt-1 inline-flex items-center justify-center text-[10px] font-bold bg-brand-500 text-white rounded-full min-w-[18px] h-[18px] px-1">{unread}</span>}
@@ -137,6 +216,22 @@ export default function MessagesPage() {
                     );
                   }
                   return result;
+                })()}
+                {active && typingBy[active.id] && (() => {
+                  const typer = data.users.find((u) => u.id === typingBy[active.id]);
+                  return (
+                    <div className="flex justify-start" aria-live="polite">
+                      <div className="inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-fg-3 text-xs px-3 py-2 rounded-r-3">
+                        <span className="font-medium">{typer?.displayName}</span>
+                        <span>{locale === 'en' ? 'is typing' : 'yazıyor'}</span>
+                        <span className="inline-flex gap-0.5">
+                          <span className="w-1 h-1 rounded-full bg-fg-3 animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-1 h-1 rounded-full bg-fg-3 animate-bounce" style={{ animationDelay: '120ms' }} />
+                          <span className="w-1 h-1 rounded-full bg-fg-3 animate-bounce" style={{ animationDelay: '240ms' }} />
+                        </span>
+                      </div>
+                    </div>
+                  );
                 })()}
               </div>
               {/* AI taslak yanıtlar */}
