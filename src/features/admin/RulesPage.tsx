@@ -105,7 +105,7 @@ export default function RulesPage() {
 
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
-          <DataTable data={data.ecaRules} columns={columns} rowKey={(r) => r.id} searchable searchPlaceholder="Kural ara..." />
+          <DataTable data={data.ecaRules} columns={columns} rowKey={(r) => r.id} searchable searchPlaceholder="Kural ara..." storageKey="admin-rules" />
         </div>
         <aside className="lg:col-span-1">
           <div className="sticky top-20 space-y-3">

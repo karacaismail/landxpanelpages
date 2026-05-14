@@ -63,6 +63,7 @@ export default function MyListingsPage() {
         rowKey={(r) => r.id}
         searchable
         searchPlaceholder="Başlık, şehir, ilçe ile ara"
+        storageKey="seller-listings"
         aiSuggestions={[
           { label: 'Taslakları yayına hazırlamamı ister misiniz?', onRun: () => alert('AI: 0 taslak ilanınız bulundu (mock).') },
           { label: 'Fiyat anomalisi olan ilanları bul', onRun: () => alert('AI: 1 ilanda emsalden +%22 sapma tespit edildi (mock).') }
