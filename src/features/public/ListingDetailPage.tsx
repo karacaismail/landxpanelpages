@@ -221,17 +221,31 @@ export default function ListingDetailPage() {
             <p className="text-fg-2 whitespace-pre-line">{listing.description}</p>
           </Card>
 
-          {/* Lokasyon (mock) */}
+          {/* Lokasyon (mock) — komşu ilanlar dahil */}
           <Card>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium">{t('listing.location')}</h3>
               <span className="text-xs text-fg-3">Lat: {listing.lat.toFixed(4)} · Lng: {listing.lng.toFixed(4)}</span>
             </div>
             <LandMap
-              points={[{ id: listing.id, lat: listing.lat, lng: listing.lng, title: listing.title, href: `#/listings/${listing.id}` }]}
-              height={320}
+              points={[
+                { id: listing.id, lat: listing.lat, lng: listing.lng, title: '★ ' + listing.title, href: `#/listings/${listing.id}` },
+                ...(() => {
+                  // 5 yakın komşu ilanlar
+                  const others = data.listings.filter((l) => l.id !== listing.id && l.status === 'live' && l.city === listing.city);
+                  return others
+                    .map((l) => ({ ...l, dist: Math.hypot(l.lat - listing.lat, l.lng - listing.lng) }))
+                    .sort((a, b) => a.dist - b.dist)
+                    .slice(0, 5)
+                    .map((l) => ({ id: l.id, lat: l.lat, lng: l.lng, title: l.title, href: `#/listings/${l.id}` }));
+                })()
+              ]}
+              height={360}
+              zoom={11}
+              center={[listing.lat, listing.lng]}
               className="overflow-hidden rounded-r-2 border border-slate-200 dark:border-slate-800"
             />
+            <p className="text-xs text-fg-3 mt-2">★ Bu ilan · diğerleri bölgedeki en yakın 5 ilan</p>
           </Card>
 
           {/* Fiyat trendi */}
