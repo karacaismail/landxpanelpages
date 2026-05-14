@@ -43,26 +43,61 @@ export function NotificationsDrawer() {
         <div className="flex-1 overflow-y-auto p-3 space-y-4">
           {(['now','soon','later'] as const).map((p) => grouped[p].length > 0 && (
             <Section key={p} title={t(`common.${p}`)}>
-              <ul className="space-y-2">
-                {grouped[p].slice(0, 20).map((n) => (
-                  <li key={n.id}>
-                    <button
-                      onClick={() => { data.markNotificationRead(n.id); if (n.actionUrl) { navigate(n.actionUrl); ui.setNotif(false); } }}
-                      className={cls(
-                        'w-full text-left p-3 rounded-r-3 border border-slate-200 dark:border-slate-800',
-                        !n.read && 'bg-brand-50/50 dark:bg-brand-900/20'
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="text-sm font-medium">{n.title}</div>
-                        {!n.read && <span className="w-2 h-2 mt-1.5 rounded-full bg-brand-500" />}
-                      </div>
-                      <div className="text-xs text-fg-3 mt-0.5">{n.body}</div>
-                      <div className="text-[11px] text-fg-4 mt-1">{formatRelTime(n.createdAt, i18n.language as 'tr' | 'en')}</div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {(() => {
+                // AI gruplama: aynı groupKey/title 3+ ise tek satıra topla
+                const groups = new Map<string, typeof grouped[typeof p]>();
+                grouped[p].slice(0, 20).forEach((n) => {
+                  const k = n.groupKey || n.title;
+                  const arr = groups.get(k) || [];
+                  arr.push(n);
+                  groups.set(k, arr);
+                });
+                return (
+                  <ul className="space-y-2">
+                    {Array.from(groups.entries()).map(([k, arr]) => {
+                      if (arr.length >= 3) {
+                        const unread = arr.filter((n) => !n.read).length;
+                        return (
+                          <li key={k}>
+                            <button
+                              onClick={() => arr.forEach((n) => data.markNotificationRead(n.id))}
+                              className="w-full text-left p-3 rounded-r-3 border border-slate-200 dark:border-slate-800 bg-brand-50/40 dark:bg-brand-900/20"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="text-sm font-medium inline-flex items-center gap-1.5">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-800 dark:text-brand-200">AI grup ×{arr.length}</span>
+                                  {arr[0].title}
+                                </div>
+                                {unread > 0 && <span className="text-[10px] font-bold bg-rose-600 text-white rounded-full px-1.5 py-0.5">{unread}</span>}
+                              </div>
+                              <div className="text-xs text-fg-3 mt-0.5">Son: {arr[0].body}</div>
+                              <div className="text-[11px] text-fg-4 mt-1">en yeni {formatRelTime(arr[0].createdAt, i18n.language as 'tr' | 'en')}</div>
+                            </button>
+                          </li>
+                        );
+                      }
+                      return arr.map((n) => (
+                        <li key={n.id}>
+                          <button
+                            onClick={() => { data.markNotificationRead(n.id); if (n.actionUrl) { navigate(n.actionUrl); ui.setNotif(false); } }}
+                            className={cls(
+                              'w-full text-left p-3 rounded-r-3 border border-slate-200 dark:border-slate-800',
+                              !n.read && 'bg-brand-50/50 dark:bg-brand-900/20'
+                            )}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="text-sm font-medium">{n.title}</div>
+                              {!n.read && <span className="w-2 h-2 mt-1.5 rounded-full bg-brand-500" />}
+                            </div>
+                            <div className="text-xs text-fg-3 mt-0.5">{n.body}</div>
+                            <div className="text-[11px] text-fg-4 mt-1">{formatRelTime(n.createdAt, i18n.language as 'tr' | 'en')}</div>
+                          </button>
+                        </li>
+                      ));
+                    })}
+                  </ul>
+                );
+              })()}
             </Section>
           ))}
           {mine.length === 0 && <div className="text-sm text-fg-3 text-center py-8">{t('empty.notifications')}</div>}
