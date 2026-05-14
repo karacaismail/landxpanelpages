@@ -303,6 +303,7 @@ export default function ListingDetailPage() {
               className="overflow-hidden rounded-r-2 border border-slate-200 dark:border-slate-800"
             />
             <p className="text-xs text-fg-3 mt-2">★ Bu ilan · diğerleri bölgedeki en yakın 5 ilan</p>
+            <p className="text-[11px] text-fg-4 mt-1">Konum gizliliği: tam adres satıcı ile mesajlaşma sonrası paylaşılır (KVKK uyumlu).</p>
           </Card>
 
           {/* Fiyat trendi */}
