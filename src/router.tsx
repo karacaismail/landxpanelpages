@@ -84,6 +84,7 @@ const McpServerPage      = lazy_(() => import('@/features/admin/McpServerPage'))
 const AgentOrchestrationPage = lazy_(() => import('@/features/admin/AgentOrchestrationPage'));
 const PiiGovernancePage  = lazy_(() => import('@/features/admin/PiiGovernancePage'));
 const ObservabilityPage  = lazy_(() => import('@/features/admin/ObservabilityPage'));
+const AuthSecurityPage   = lazy_(() => import('@/features/admin/AuthSecurityPage'));
 
 const NotFoundPage       = lazy_(() => import('@/features/public/NotFoundPage'));
 
@@ -171,7 +172,8 @@ export const router = createHashRouter([
       { path: 'mcp-server', element: withSuspense(<McpServerPage />) },
       { path: 'orchestration', element: withSuspense(<AgentOrchestrationPage />) },
       { path: 'pii-governance', element: withSuspense(<PiiGovernancePage />) },
-      { path: 'observability', element: withSuspense(<ObservabilityPage />) }
+      { path: 'observability', element: withSuspense(<ObservabilityPage />) },
+      { path: 'auth-security', element: withSuspense(<AuthSecurityPage />) }
     ]
   },
   { path: '*', element: <Navigate to="/" replace /> }

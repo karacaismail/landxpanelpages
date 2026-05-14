@@ -29,6 +29,7 @@ const ADMIN_ITEMS: Item[] = [
   { to: '/admin/approvals', label: 'approvals', Icon: CheckSquare },
   { to: '/admin/users', label: 'users', Icon: Users },
   { to: '/admin/roles', label: 'roles', Icon: ShieldCheck },
+  { to: '/admin/auth-security', label: 'authSecurity', Icon: ShieldCheck },
   { to: '/admin/rules', label: 'rules', Icon: FlowArrow },
   { to: '/admin/agent-tasks', label: 'agentTasks', Icon: PuzzlePiece },
   { to: '/admin/agent-registry', label: 'agentRegistry', Icon: Robot },
