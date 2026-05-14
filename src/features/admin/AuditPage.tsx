@@ -12,6 +12,7 @@ export default function AuditPage() {
   const data = useData();
   const [actionPrefix, setActionPrefix] = useState<string>('all');
   const [resType, setResType] = useState<string>('all');
+  const [dateRange, setDateRange] = useState<'all' | '24h' | '7d' | '30d'>('all');
 
   const actionGroups = useMemo(() => {
     const s = new Set<string>();
@@ -26,12 +27,15 @@ export default function AuditPage() {
   }, [data.audit]);
 
   const filtered = useMemo(() => {
+    const now = Date.now();
+    const cutoff = dateRange === '24h' ? now - 24 * 3600_000 : dateRange === '7d' ? now - 7 * 86400_000 : dateRange === '30d' ? now - 30 * 86400_000 : 0;
     return data.audit.filter((a) => {
       if (actionPrefix !== 'all' && !a.action.startsWith(actionPrefix)) return false;
       if (resType !== 'all' && a.resourceType !== resType) return false;
+      if (cutoff > 0 && new Date(a.at).getTime() < cutoff) return false;
       return true;
     });
-  }, [data.audit, actionPrefix, resType]);
+  }, [data.audit, actionPrefix, resType, dateRange]);
 
   const columns: Column<AuditEvent>[] = [
     { key: 'at', header: 'Zaman', sortable: true, cell: (r) => <span className="text-xs">{formatDateTime(r.at)}</span> },
@@ -66,6 +70,12 @@ export default function AuditPage() {
           <select value={resType} onChange={(e) => setResType(e.target.value)} className="rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 min-h-[36px]">
             <option value="all">Tüm kaynaklar</option>
             {resourceTypes.map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <select value={dateRange} onChange={(e) => setDateRange(e.target.value as 'all' | '24h' | '7d' | '30d')} className="rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 min-h-[36px]">
+            <option value="all">Tüm tarihler</option>
+            <option value="24h">Son 24 saat</option>
+            <option value="7d">Son 7 gün</option>
+            <option value="30d">Son 30 gün</option>
           </select>
           <span className="ml-auto text-fg-3">{filtered.length} kayıt</span>
         </div>
