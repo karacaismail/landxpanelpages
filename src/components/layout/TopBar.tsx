@@ -33,7 +33,7 @@ export function TopBar({ variant = 'public', onOpenSidebar }: Props) {
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-950/85 backdrop-blur border-b border-slate-200 dark:border-slate-800 safe-top">
-      <div className="flex items-center gap-3 h-14 lg:h-16 px-3 lg:px-6 max-w-[1600px] mx-auto">
+      <div className="flex items-center gap-1.5 xxs:gap-2 sm:gap-3 h-14 lg:h-16 px-2 xxs:px-3 lg:px-6 max-w-[1600px] mx-auto">
         {/* Sidebar/menu toggle (panel + mobile-only public) */}
         {onOpenSidebar && (
           <button
@@ -50,7 +50,7 @@ export function TopBar({ variant = 'public', onOpenSidebar }: Props) {
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-r-2 bg-brand-500 text-white">
             <MapTrifold weight="fill" size={18} />
           </span>
-          <span className="text-base">LandX</span>
+          <span className="text-base hidden xxs:inline">LandX</span>
         </Link>
         {variant === 'panel' && (
           <span title="Tenant izolasyon — I05" className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-fg-2 border border-slate-200 dark:border-slate-700">

@@ -82,3 +82,55 @@ input, textarea, select {
   from { transform: translateY(-8px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+// Adaptive paddings — 320px (iPhone SE/4) → 2560 (TV)
+// Fluid clamp() ile yatay padding ölçeklenir.
+.px-adaptive {
+  padding-left: clamp(0.5rem, 1.2vw, 1.5rem);
+  padding-right: clamp(0.5rem, 1.2vw, 1.5rem);
+}
+.py-adaptive {
+  padding-top: clamp(0.75rem, 1vw, 1.5rem);
+  padding-bottom: clamp(0.75rem, 1vw, 1.5rem);
+}
+
+// Touch hedef boyutu zorlaması — mobile/tablet
+@media (pointer: coarse) {
+  button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+  }
+  button.no-touch-min, a.no-touch-min, [role="button"].no-touch-min {
+    min-height: auto;
+  }
+}
+
+// 320px (xxs) ekstra sıkı paddingler
+@media (max-width: 374px) {
+  .max-w-\[1600px\] { padding-left: 0.5rem; padding-right: 0.5rem; }
+  .gap-3 { gap: 0.5rem; }
+  .gap-4 { gap: 0.625rem; }
+  .text-base { font-size: 0.9375rem; }
+  // Stack inline grids to single col
+  .grid.grid-cols-2 { grid-template-columns: 1fr; }
+  // Reduce big card padding
+  [data-card] { padding: 0.625rem; }
+}
+
+// Portrait orientation tablet — Sidebar kolapsla
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1023px) {
+  aside[aria-label="Birincil gezinme"] { width: 56px !important; }
+  aside[aria-label="Birincil gezinme"] nav span { display: none; }
+}
+
+// Ultrawide — geniş ekranda max-width zorlamayı koru
+@media (min-width: 1920px) {
+  body { font-size: 1.0625rem; }
+}
+
+// TV (≥2560) — daha büyük tipografi
+@media (min-width: 2560px) {
+  body { font-size: 1.25rem; line-height: 1.6; }
+  h1 { font-size: 3rem; }
+  h2 { font-size: 2.25rem; }
+  .max-w-\[1600px\] { max-width: 2000px !important; }
+}
