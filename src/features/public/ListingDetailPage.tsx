@@ -14,6 +14,7 @@ import { ImageGallery } from '@/components/data/ImageGallery';
 import { ValuationBar } from '@/components/data/ValuationBar';
 import { ListingCard } from '@/components/data/ListingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { LandMap } from '@/components/map/LandMap';
 import { IMAR_LABELS, TKGM_LABELS, TAPU_LABELS } from '@/data/fixtures/imar-types';
 import { formatPrice, formatArea, formatRelTime, compactNumber } from '@/lib/utils/format';
 import { nanoid } from 'nanoid';
@@ -204,9 +205,11 @@ export default function ListingDetailPage() {
               <h3 className="font-medium">{t('listing.location')}</h3>
               <span className="text-xs text-fg-3">Lat: {listing.lat.toFixed(4)} · Lng: {listing.lng.toFixed(4)}</span>
             </div>
-            <div className="aspect-[16/9] rounded-r-2 bg-gradient-to-br from-emerald-100 to-sky-100 dark:from-emerald-900/40 dark:to-sky-900/40 border border-slate-200 dark:border-slate-800 grid place-items-center">
-              <div className="text-fg-3 text-sm inline-flex items-center gap-2"><MapPin size={18} /> Harita önizleme (mock)</div>
-            </div>
+            <LandMap
+              points={[{ id: listing.id, lat: listing.lat, lng: listing.lng, title: listing.title, href: `#/listings/${listing.id}` }]}
+              height={320}
+              className="overflow-hidden rounded-r-2 border border-slate-200 dark:border-slate-800"
+            />
           </Card>
 
           {/* Similar */}

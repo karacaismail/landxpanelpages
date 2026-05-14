@@ -90,8 +90,12 @@ Detay için `/help` rotasını ziyaret edin.
 
 GitHub Actions ile otomatik:
 1. `main` dalına push → `.github/workflows/deploy.yml` build edip `dist/`'i Pages artifact olarak yükler
-2. **GitHub repo Settings → Pages → Source: GitHub Actions** olarak ayarlayın (manuel adım; bir kez)
+2. **GitHub repo Settings → Pages → Source: "GitHub Actions"** olarak ayarlayın (manuel adım; bir kez)  
+   <https://github.com/karacaismail/landxpanelpages/settings/pages>
 3. URL: `https://karacaismail.github.io/landxpanelpages/`
+
+### Yedek dal
+`backup-pre-rewrite` — yeniden yazımdan önceki vanilla iter'lerin son hâli. Geri almak gerekirse referans olarak duruyor.
 
 Yerel build & preview:
 ```bash

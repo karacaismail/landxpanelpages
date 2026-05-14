@@ -8,6 +8,7 @@ import './styles/tailwind.css';
 import './styles/globals.scss';
 import 'leaflet/dist/leaflet.css';
 import { router } from './router';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const qc = new QueryClient({
   defaultOptions: {
@@ -17,8 +18,10 @@ const qc = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={qc}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={qc}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );

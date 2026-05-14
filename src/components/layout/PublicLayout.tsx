@@ -6,6 +6,7 @@ import { AssistantDrawer } from './AssistantDrawer';
 import { NotificationsDrawer } from './NotificationsDrawer';
 import { ScrollToTop } from './ScrollToTop';
 import { GlobalShortcuts } from './GlobalShortcuts';
+import { OnboardingBanner } from '@/components/ui/OnboardingBanner';
 
 export function PublicLayout() {
   const loc = useLocation();
@@ -13,6 +14,7 @@ export function PublicLayout() {
     <div className="min-h-dvh flex flex-col bg-bg-2">
       <ScrollToTop />
       <GlobalShortcuts />
+      <OnboardingBanner />
       <TopBar variant="public" />
       <main id="main" tabIndex={-1} className="flex-1">
         <Outlet key={loc.pathname} />

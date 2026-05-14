@@ -5,6 +5,7 @@ import { MagnifyingGlass, Sparkle, MapTrifold, GridFour, ListBullets, X, Bookmar
 import { useData } from '@/store/data';
 import { useAuth } from '@/store/auth';
 import { ListingCard } from '@/components/data/ListingCard';
+import { LandMap } from '@/components/map/LandMap';
 import { FilterBar } from '@/components/data/FilterBar';
 import { SectionHeading } from '@/components/data/SectionHeading';
 import { Button } from '@/components/ui/Button';
@@ -157,11 +158,13 @@ export default function DiscoverPage() {
           {filtered.slice(0, 60).map((l) => <ListingCard key={l.id} listing={l} variant="list" hideStatus />)}
         </div>
       ) : (
-        <div className="rounded-r-3 border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 p-6 text-center text-fg-3">
-          <MapTrifold size={36} weight="duotone" className="mx-auto mb-2 text-brand-500" />
-          <div className="font-medium text-fg-1 mb-1">Harita görünümü</div>
-          <div className="text-sm">{filtered.length} ilan haritada gösterilmek üzere konum bilgisiyle hazırlandı. Tam harita için ilan detay sayfasına göz atın.</div>
-          <Button className="mt-3" variant="outline" onClick={() => setView('grid')}>Izgara görünümüne dön</Button>
+        <div className="rounded-r-3 border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+          <LandMap
+            points={filtered.slice(0, 200).map((l) => ({ id: l.id, lat: l.lat, lng: l.lng, title: l.title, href: `#/listings/${l.id}` }))}
+            height={520}
+            center={filtered.length ? [filtered[0].lat, filtered[0].lng] : undefined}
+            zoom={filtered.length === 1 ? 11 : 6}
+          />
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cls } from '@/lib/utils/cls';
 import type { ListingImage } from '@/types/domain';
 import { CaretLeft, CaretRight, X } from '@phosphor-icons/react';
@@ -10,6 +10,30 @@ interface Props {
 export function ImageGallery({ images }: Props) {
   const [idx, setIdx] = useState(0);
   const [zoom, setZoom] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  function onTouchStart(e: React.TouchEvent) { touchStartX.current = e.touches[0].clientX; }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current == null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) > 40) {
+      if (delta < 0) setIdx((i) => (i + 1) % images.length);
+      else setIdx((i) => (i - 1 + images.length) % images.length);
+    }
+    touchStartX.current = null;
+  }
+
+  useEffect(() => {
+    if (!zoom) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'ArrowRight') setIdx((i) => (i + 1) % images.length);
+      else if (e.key === 'ArrowLeft') setIdx((i) => (i - 1 + images.length) % images.length);
+      else if (e.key === 'Escape') setZoom(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [zoom, images.length]);
+
   if (!images.length) return null;
   const main = images[idx];
 
@@ -17,6 +41,8 @@ export function ImageGallery({ images }: Props) {
     <div className="space-y-2">
       <button
         onClick={() => setZoom(true)}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
         className="relative w-full block group rounded-r-3 overflow-hidden bg-slate-200 dark:bg-slate-800"
         aria-label="Görseli büyüt"
       >
