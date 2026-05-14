@@ -311,6 +311,8 @@ export interface TkgmQuery {
   createdAt: string;
 }
 
+export type ImplStatus = 'full' | 'partial' | 'planned';
+
 export interface ModuleCatalogEntry {
   id: string;
   layer: 'L0' | 'L1' | 'L2' | 'L3' | 'L4' | 'L5';
@@ -323,6 +325,7 @@ export interface ModuleCatalogEntry {
   description: string;
   kpis: string;
   uiRoute?: string;
+  implStatus?: ImplStatus;
 }
 
 export interface AiSuggestion {

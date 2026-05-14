@@ -9,6 +9,7 @@ import { Stat } from '@/components/ui/Stat';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { MODULES_CATALOG } from '@/data/fixtures/modules-catalog';
 import { MODULE_DETAILS, type ModuleField } from '@/data/fixtures/modules-detail';
+import type { ImplStatus } from '@/types/domain';
 import { cls } from '@/lib/utils/cls';
 
 const TYPE_COLOR: Record<string, string> = {
@@ -68,7 +69,8 @@ export default function ModuleDetailPage() {
         title={`${catalog.id} · ${catalog.name}`}
         description={catalog.description}
         actions={
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <ImplStatusPill status={catalog.implStatus} />
             {catalog.ai && <AiBadge>AI</AiBadge>}
             {catalog.mcp && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-accent-50 dark:bg-accent-900/40 text-accent-700 dark:text-accent-200">MCP</span>}
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-800 text-fg-2">{catalog.layer}</span>
@@ -177,4 +179,14 @@ function FieldRow({ f }: { f: ModuleField }) {
       <td className="px-3 py-2 text-xs text-fg-3 hidden xl:table-cell max-w-md">{f.desc || '—'}</td>
     </tr>
   );
+}
+
+function ImplStatusPill({ status }: { status?: ImplStatus }) {
+  const map: Record<ImplStatus, { label: string; cls: string }> = {
+    full: { label: '✓ Tam UI', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200' },
+    partial: { label: '◐ Kısmi', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200' },
+    planned: { label: '○ Planlandı', cls: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }
+  };
+  const s = status || 'planned';
+  return <span className={cls('inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium', map[s].cls)}>{map[s].label}</span>;
 }

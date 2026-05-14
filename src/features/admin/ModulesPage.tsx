@@ -6,7 +6,7 @@ import { AiBadge } from '@/components/ui/AiBadge';
 import { Stat } from '@/components/ui/Stat';
 import { MODULES_CATALOG } from '@/data/fixtures/modules-catalog';
 import { MODULE_DETAILS } from '@/data/fixtures/modules-detail';
-import type { ModuleCatalogEntry } from '@/types/domain';
+import type { ModuleCatalogEntry, ImplStatus } from '@/types/domain';
 import { cls } from '@/lib/utils/cls';
 import { Link } from 'react-router-dom';
 import { Stack, Sparkle, MagnifyingGlass, ShieldCheck } from '@phosphor-icons/react';
@@ -17,22 +17,27 @@ const LAYER_LABELS: Record<string, string> = {
 
 export default function ModulesPage() {
   const [layer, setLayer] = useState<string>('all');
+  const [implFilter, setImplFilter] = useState<'all' | ImplStatus>('all');
   const [q, setQ] = useState('');
   const filtered = useMemo(() => {
     let list = layer === 'all' ? MODULES_CATALOG : MODULES_CATALOG.filter((m) => m.layer === layer);
+    if (implFilter !== 'all') list = list.filter((m) => (m.implStatus || 'planned') === implFilter);
     if (q.trim()) {
       const nq = q.toLocaleLowerCase('tr-TR');
       list = list.filter((m) => (m.id + ' ' + m.name + ' ' + m.description).toLocaleLowerCase('tr-TR').includes(nq));
     }
     return list;
-  }, [layer, q]);
+  }, [layer, q, implFilter]);
 
   const totals = useMemo(() => {
     const fields = Object.values(MODULE_DETAILS).reduce((s, m) => s + m.fields.length, 0);
     const caps = Object.values(MODULE_DETAILS).reduce((s, m) => s + m.capabilities.length, 0);
     const ai = MODULES_CATALOG.filter((m) => m.ai).length;
     const mcp = MODULES_CATALOG.filter((m) => m.mcp).length;
-    return { fields, caps, ai, mcp };
+    const full = MODULES_CATALOG.filter((m) => m.implStatus === 'full').length;
+    const partial = MODULES_CATALOG.filter((m) => m.implStatus === 'partial').length;
+    const planned = MODULES_CATALOG.filter((m) => (m.implStatus || 'planned') === 'planned').length;
+    return { fields, caps, ai, mcp, full, partial, planned };
   }, []);
 
   return (
@@ -40,10 +45,18 @@ export default function ModulesPage() {
       <SectionHeading title="Modül Kataloğu" description={`Excel master kaynaklı — ${MODULES_CATALOG.length} modül, 6 katman`} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <Stat label="Modül" value={MODULES_CATALOG.length} icon={<Stack size={20} weight="fill" />} />
+        <Stat label="Modül" value={MODULES_CATALOG.length} icon={<Stack size={20} weight="fill" />} hint={`${totals.full} tam · ${totals.partial} kısmi · ${totals.planned} planlı`} />
         <Stat label="Yetenek" value={totals.caps} icon={<Sparkle size={20} weight="fill" />} />
         <Stat label="Toplam Alan" value={totals.fields.toLocaleString('tr-TR')} icon={<ShieldCheck size={20} weight="fill" />} />
         <Stat label="AI / MCP" value={`${totals.ai} / ${totals.mcp}`} icon={<Sparkle size={20} weight="fill" />} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5 mb-3 text-xs">
+        <span className="text-fg-3">Durum:</span>
+        <Chip on={implFilter === 'all'} onClick={() => setImplFilter('all')}>Tümü</Chip>
+        <Chip on={implFilter === 'full'} onClick={() => setImplFilter('full')}>✓ Tam ({totals.full})</Chip>
+        <Chip on={implFilter === 'partial'} onClick={() => setImplFilter('partial')}>◐ Kısmi ({totals.partial})</Chip>
+        <Chip on={implFilter === 'planned'} onClick={() => setImplFilter('planned')}>○ Planlı ({totals.planned})</Chip>
       </div>
 
       <div className="flex flex-col md:flex-row gap-2 items-stretch mb-4">
@@ -82,7 +95,8 @@ function ModuleCard({ m }: { m: ModuleCatalogEntry }) {
     <Card className="flex flex-col">
       <div className="flex items-center justify-between mb-1">
         <code className="text-xs text-fg-3 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">{m.id} · {m.layer}</code>
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
+          <ImplStatusDot status={m.implStatus} />
           {m.ai && <AiBadge>AI</AiBadge>}
           {m.mcp && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-accent-50 dark:bg-accent-900/40 text-accent-700 dark:text-accent-200">MCP</span>}
         </div>
@@ -108,5 +122,20 @@ function ModuleCard({ m }: { m: ModuleCatalogEntry }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+function ImplStatusDot({ status }: { status?: ImplStatus }) {
+  const map: Record<ImplStatus, { label: string; cls: string; tip: string }> = {
+    full: { label: '✓', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', tip: 'Tam UI implementasyonu' },
+    partial: { label: '◐', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', tip: 'Kısmi UI / başka sayfada' },
+    planned: { label: '○', cls: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400', tip: 'Planlandı — UI henüz yok' }
+  };
+  const s = status || 'planned';
+  const m = map[s];
+  return (
+    <span title={m.tip} className={cls('inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold', m.cls)} aria-label={`Durum: ${m.tip}`}>
+      {m.label}
+    </span>
   );
 }

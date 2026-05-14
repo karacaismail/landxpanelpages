@@ -1,6 +1,6 @@
 // AI Ops — A06 Prompt Library + A07 LLM Provider Abstraction + A08 LLM Observability & Cost Tracking
 // Excel modules: A06, A07, A08 — admin-only AI operasyon merkezi
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SectionHeading } from '@/components/data/SectionHeading';
 import { Card } from '@/components/ui/Card';
@@ -9,7 +9,7 @@ import { Stat } from '@/components/ui/Stat';
 import { AiBadge } from '@/components/ui/AiBadge';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { DataTable, type Column } from '@/components/data/DataTable';
-import { Sparkle, Brain, Robot, Lightning, ChartLineUp, Copy, Pencil, Plus, Flask, GitBranch, CurrencyCircleDollar } from '@phosphor-icons/react';
+import { Sparkle, Brain, Robot, Lightning, ChartLineUp, Copy, Pencil, Plus, Flask, GitBranch, CurrencyCircleDollar, Play, Stop } from '@phosphor-icons/react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import { cls } from '@/lib/utils/cls';
 import { toast } from '@/store/toast';
@@ -386,6 +386,7 @@ function ObservabilityTab() {
           </div>
         </Card>
       </div>
+      <StreamingDemoCard />
       <Card>
         <h3 className="font-medium mb-2 inline-flex items-center gap-2"><Plus size={16} /> Bütçe alarmı kuralları</h3>
         <ul className="text-sm space-y-1 text-fg-2">
@@ -396,5 +397,72 @@ function ObservabilityTab() {
         </ul>
       </Card>
     </div>
+  );
+}
+
+// A10 Streaming & SSE Primitives — token-by-token stream simülasyonu
+const STREAM_TEXT =
+  'AI değerleme bandı hesaplandı. Beykoz Riva bölgesinde son 12 aydaki 8 emsal incelendi. ' +
+  'Bu parsel için önerilen fiyat aralığı 3.8M-4.5M TL. Güven aralığı %84. ' +
+  'Tapu türü müstakil, imar tarım sınırı, TKGM kaydında şerh yok. ' +
+  'Risk skoru 18/100 (düşük). Öneri: yayın için ideal fiyat 4.2M TL.';
+
+function StreamingDemoCard() {
+  const [streaming, setStreaming] = useState(false);
+  const [shown, setShown] = useState('');
+  const [tokenCount, setTokenCount] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const tickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startRef = useRef<number>(0);
+
+  function stop() {
+    if (tickRef.current) { clearTimeout(tickRef.current); tickRef.current = null; }
+    setStreaming(false);
+  }
+
+  function start() {
+    setShown('');
+    setTokenCount(0);
+    setElapsed(0);
+    setStreaming(true);
+    startRef.current = Date.now();
+    const tokens = STREAM_TEXT.split(' ');
+    let i = 0;
+    const step = () => {
+      if (i >= tokens.length) { stop(); return; }
+      setShown((s) => (s ? s + ' ' : '') + tokens[i]);
+      setTokenCount(i + 1);
+      setElapsed(Date.now() - startRef.current);
+      i++;
+      tickRef.current = setTimeout(step, 40 + Math.random() * 80);
+    };
+    step();
+  }
+
+  useEffect(() => () => { if (tickRef.current) clearTimeout(tickRef.current); }, []);
+
+  const tps = elapsed > 0 ? (tokenCount / (elapsed / 1000)).toFixed(1) : '0.0';
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+        <h3 className="font-medium inline-flex items-center gap-2"><Lightning size={16} weight="fill" className="text-amber-500" /> A10 — Streaming Demo</h3>
+        <div className="text-xs text-fg-3">
+          {tokenCount} token · {(elapsed / 1000).toFixed(1)}sn · <strong className="text-fg-1">{tps} t/sn</strong>
+        </div>
+      </div>
+      <p className="text-xs text-fg-3 mb-2">Token-by-token SSE simülasyonu — gerçek üretimde Claude'un stream API'sine bağlanır, geri bağlanma + retry primitive\'leri otomatik çalışır.</p>
+      <div className="bg-slate-900 dark:bg-slate-950 text-slate-100 rounded-r-2 p-3 text-sm font-mono min-h-[120px] whitespace-pre-wrap leading-relaxed">
+        {shown}
+        {streaming && <span className="inline-block w-1.5 h-4 bg-emerald-400 ml-0.5 animate-pulse align-middle" />}
+        {!streaming && !shown && <span className="text-slate-500">// Akış başlatılmadı. Aşağıdaki butona basın.</span>}
+      </div>
+      <div className="flex gap-2 mt-3">
+        {!streaming
+          ? <Button size="sm" iconLeft={<Play size={14} />} onClick={start}>Akışı başlat</Button>
+          : <Button size="sm" variant="danger" iconLeft={<Stop size={14} />} onClick={stop}>Durdur</Button>}
+        <Button size="sm" variant="outline" onClick={() => { setShown(''); setTokenCount(0); setElapsed(0); }} disabled={streaming}>Temizle</Button>
+      </div>
+    </Card>
   );
 }
