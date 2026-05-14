@@ -14,6 +14,7 @@ import { useData } from '@/store/data';
 import { cls } from '@/lib/utils/cls';
 import { Footer } from './Footer';
 import { startDemoRunner } from '@/lib/eca/demo-runner';
+import { Breadcrumb } from './Breadcrumb';
 
 interface Props { variant: 'seller' | 'admin'; }
 
@@ -43,6 +44,7 @@ export function PanelLayout({ variant }: Props) {
         <Sidebar variant={variant} />
         <div className={cls('flex-1 min-w-0 transition-[padding]')}>
           <main id="main" tabIndex={-1} className="px-3 lg:px-6 py-4 lg:py-6 max-w-[1600px] mx-auto">
+            <Breadcrumb />
             <Outlet />
           </main>
           <Footer compact />
