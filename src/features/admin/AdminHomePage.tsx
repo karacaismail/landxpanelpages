@@ -5,7 +5,7 @@ import { Stat } from '@/components/ui/Stat';
 import { Card } from '@/components/ui/Card';
 import { SectionHeading } from '@/components/data/SectionHeading';
 import { Button } from '@/components/ui/Button';
-import { Users, MapPin, FlowArrow, ShieldCheck, Sparkle, ArrowRight, Buildings, CheckSquare, Briefcase, ChartLineUp, Clock } from '@phosphor-icons/react';
+import { Users, MapPin, FlowArrow, ShieldCheck, Sparkle, ArrowRight, Buildings, CheckSquare, Briefcase, ChartLineUp, Clock, FlowArrow as Flow } from '@phosphor-icons/react';
 
 export default function AdminHomePage() {
   const data = useData();
@@ -47,7 +47,10 @@ export default function AdminHomePage() {
         </div>
       </Card>
 
-      <RecentActivity />
+      <div className="grid lg:grid-cols-2 gap-4 mb-4">
+        <RecentActivity />
+        <LiveEcaActivity />
+      </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {[
@@ -82,9 +85,9 @@ export default function AdminHomePage() {
 
 function RecentActivity() {
   const data = useData();
-  const recent = data.audit.slice(0, 8);
+  const recent = data.audit.slice(0, 6);
   return (
-    <Card className="mb-4">
+    <Card>
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-medium inline-flex items-center gap-2"><Clock size={16} weight="duotone" /> Son aktivite</h3>
         <Link to="/admin/audit" className="text-xs text-brand-700 dark:text-brand-300 hover:underline inline-flex items-center gap-1">Denetim İzi <ArrowRight size={12} /></Link>
@@ -103,4 +106,49 @@ function RecentActivity() {
       </ul>
     </Card>
   );
+}
+
+function LiveEcaActivity() {
+  const data = useData();
+  // Tüm kuralların son tetiklenme tarihçesini topla, en yenileri al
+  const triggers = data.ecaRules
+    .flatMap((r) => r.history.map((h) => ({ rule: r.name, ruleId: r.id, ...h })))
+    .filter((h) => h.matched)
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, 6);
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-medium inline-flex items-center gap-2">
+          <FlowArrow size={16} weight="duotone" />
+          Canlı ECA tetiklenmeleri
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        </h3>
+        <Link to="/admin/rules" className="text-xs text-brand-700 dark:text-brand-300 hover:underline inline-flex items-center gap-1">Tüm kurallar <ArrowRight size={12} /></Link>
+      </div>
+      {triggers.length === 0 ? (
+        <div className="text-sm text-fg-3 py-4 text-center">Henüz tetiklenme yok. ECA demo runner 45 saniyede bir mock olay üretir.</div>
+      ) : (
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+          {triggers.map((t, i) => (
+            <li key={i} className="py-2 flex items-center gap-3">
+              <Sparkle size={14} weight="fill" className="text-brand-500 shrink-0" />
+              <span className="text-fg-2 truncate flex-1">{t.rule}</span>
+              <span className="text-xs text-fg-3 shrink-0">{t.actionsRun.length} aksiyon</span>
+              <span className="text-[11px] text-fg-3 shrink-0">{relTime(t.at)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function relTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 60_000) return 'az önce';
+  if (diff < 3600_000) return `${Math.round(diff / 60_000)}dk önce`;
+  if (diff < 86400_000) return `${Math.round(diff / 3600_000)}sa önce`;
+  return `${Math.round(diff / 86400_000)}g önce`;
 }
