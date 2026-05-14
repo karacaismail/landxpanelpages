@@ -16,9 +16,30 @@ export default function ApprovalsPage() {
   const queue = useMemo(() => data.listings.filter((l) => l.status === 'review' || l.status === 'draft'), [data.listings]);
 
   const [selected, setSelected] = useState<Listing | null>(queue[0] || null);
+  const [rejectModal, setRejectModal] = useState(false);
 
   function approve(l: Listing) { data.setListingStatus(l.id, 'live'); }
   function reject(l: Listing)  { data.setListingStatus(l.id, 'rejected'); }
+
+  function aiRejectLetter(l: Listing): string {
+    const reasons: string[] = [];
+    if (l.tkgmStatus === 'ipotekli') reasons.push('TKGM kaydında ipotek tespit edildi');
+    if (l.tkgmStatus === 'serh') reasons.push('Tapuda şerh kayıtlı');
+    if (l.tapuType === 'hisseli' && (l.hisseRatio || 0) < 40) reasons.push(`Hisse oranı (${l.hisseRatio}%) kabul eşiğimizin altında`);
+    if (l.images.length < 3) reasons.push('Görsel sayısı 3\'ün altında');
+    if (l.aiRiskScore > 70) reasons.push(`AI risk skoru yüksek (${l.aiRiskScore}/100)`);
+    const list = reasons.length ? reasons.map((r) => `- ${r}`).join('\n') : '- Mevcut yayın politikamızla tam örtüşmüyor';
+    return [
+      `Sayın ${l.title.split(' ')[0]} ilan sahibi,`,
+      '',
+      'İlanınızı incelediğimiz için teşekkür ederiz. Aşağıdaki nedenlerle bu aşamada yayına alamadık:',
+      list,
+      '',
+      'Bu noktaları gözden geçirip ilanınızı güncellerseniz tekrar inceleyebiliriz. Sorularınız için destek ekibimize yazabilirsiniz.',
+      '',
+      'LandX Moderasyon Ekibi'
+    ].join('\n');
+  }
 
   const columns: Column<Listing>[] = [
     {
@@ -93,8 +114,8 @@ export default function ApprovalsPage() {
                   <div className="flex flex-col gap-2">
                     <Button block variant="success" iconLeft={<Check size={16} />} onClick={() => approve(selected)}>Onayla</Button>
                     <Button block variant="danger" iconLeft={<XIcon size={16} />} onClick={() => reject(selected)}>Reddet</Button>
+                    <Button block variant="outline" iconLeft={<Sparkle size={16} weight="fill" />} onClick={() => setRejectModal(true)}>AI red mektubu taslağı</Button>
                   </div>
-                  <div className="text-xs text-fg-3 mt-2">AI red mektubu taslağı: "Tapu hisse oranı kabul eşiğimizin altında. Müsait olduğunda güncelleyebilirsiniz."</div>
                 </Card>
               </>
             ) : (
@@ -103,6 +124,24 @@ export default function ApprovalsPage() {
           </div>
         </aside>
       </div>
+
+      {rejectModal && selected && (
+        <div role="dialog" aria-label="AI red mektubu" className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-3" onClick={() => setRejectModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-r-4 p-4 lg:p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold mb-2 inline-flex items-center gap-2"><Sparkle size={18} weight="fill" className="text-brand-500" /> AI red mektubu</h3>
+            <p className="text-xs text-fg-3 mb-2">Aşağıdaki taslak AI tarafından bu ilanın özelliklerine göre üretildi. Düzenleyebilirsiniz.</p>
+            <textarea
+              defaultValue={aiRejectLetter(selected)}
+              rows={10}
+              className="w-full rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono"
+            />
+            <div className="flex gap-2 mt-3">
+              <Button variant="outline" block onClick={() => setRejectModal(false)}>İptal</Button>
+              <Button variant="danger" block onClick={() => { reject(selected); setRejectModal(false); }}>Reddet ve gönder</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
