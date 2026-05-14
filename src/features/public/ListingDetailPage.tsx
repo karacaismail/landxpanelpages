@@ -394,6 +394,13 @@ export default function ListingDetailPage() {
         </aside>
       </div>
 
+      {/* Mobile sticky bottom CTA */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-slate-950/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 safe-bottom px-3 py-2 grid grid-cols-3 gap-2">
+        <Button size="sm" variant="outline" iconLeft={<ChatCircle size={14} />} onClick={openOrCreateThread}>Mesaj</Button>
+        <Button size="sm" variant="secondary" iconLeft={<CurrencyCircleDollar size={14} />} onClick={() => setOfferModal(true)}>Teklif</Button>
+        <Button size="sm" iconLeft={<Calendar size={14} />} onClick={() => setViewingModal(true)}>Randevu</Button>
+      </div>
+
       {/* Share modal */}
       {shareModal && (
         <Modal title="İlanı paylaş" onClose={() => setShareModal(false)}>
