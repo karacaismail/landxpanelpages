@@ -351,13 +351,22 @@ export default function ListingDetailPage() {
               <Card>
                 <h3 className="font-medium mb-3">{t('listing.seller')}</h3>
                 <Link to="#" className="flex items-center gap-3">
-                  <img src={seller.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover bg-slate-200" />
+                  <div className="relative">
+                    <img src={seller.avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover bg-slate-200" />
+                    {(() => {
+                      const lastSeen = Date.now() - new Date(seller.lastSeenAt).getTime();
+                      const online = lastSeen < 5 * 60_000;
+                      const recent = lastSeen < 60 * 60_000;
+                      return <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${online ? 'bg-emerald-500' : recent ? 'bg-amber-500' : 'bg-slate-400'}`} title={online ? 'Çevrimiçi' : recent ? 'Son 1 saat içinde' : 'Çevrimdışı'} />;
+                    })()}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{seller.displayName}</div>
                     <div className="text-xs text-fg-3">
                       ★ {seller.rating} · {seller.principalType === 'org' ? 'Kurumsal' : 'Bireysel'}
                       {seller.kycLevel === 'full' && <span className="ml-1 inline-flex items-center gap-0.5 text-emerald-600"><ShieldCheck size={12} weight="fill" /> Doğrulanmış</span>}
                     </div>
+                    <div className="text-[11px] text-fg-3 mt-0.5">Son görülme: {formatRelTime(seller.lastSeenAt, locale)}</div>
                   </div>
                 </Link>
                 {seller.bio && <p className="text-sm text-fg-3 mt-3">{seller.bio}</p>}
