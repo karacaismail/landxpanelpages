@@ -47,6 +47,8 @@ export default function AdminHomePage() {
         </div>
       </Card>
 
+      <PendingActions />
+
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
         <RecentActivity />
         <LiveEcaActivity />
@@ -80,6 +82,43 @@ export default function AdminHomePage() {
         ))}
       </div>
     </div>
+  );
+}
+
+function PendingActions() {
+  const data = useData();
+  const pendingListings = data.listings.filter((l) => l.status === 'review').length;
+  const pendingKyc = data.users.filter((u) => u.kycLevel === 'phone' || u.kycLevel === 'email').length;
+  const pendingOffers = data.offers.filter((o) => o.status === 'pending').length;
+  const draftRules = data.ecaRules.filter((r) => !r.enabled).length;
+
+  const items = [
+    { label: 'İlan onayı', count: pendingListings, to: '/admin/approvals', sev: pendingListings > 10 ? 'high' : 'normal' },
+    { label: 'KYC bekleyen', count: pendingKyc, to: '/admin/users', sev: 'normal' },
+    { label: 'Açık teklif', count: pendingOffers, to: '/admin/users', sev: 'normal' },
+    { label: 'Taslak ECA kural', count: draftRules, to: '/admin/rules', sev: 'normal' },
+    { label: 'DSAR — yasal süre', count: 1, to: '/admin/compliance', sev: 'high' },
+    { label: 'VERBİS güncelle', count: 1, to: '/admin/compliance', sev: 'high' }
+  ];
+
+  return (
+    <Card className="mb-4">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-medium inline-flex items-center gap-2"><Clock size={16} weight="duotone" /> Bekleyen aksiyonlar</h3>
+        <span className="text-xs text-fg-3">{items.reduce((s, i) => s + i.count, 0)} toplam</span>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+        {items.map((it) => (
+          <Link key={it.label} to={it.to} className={`block rounded-r-2 p-3 border ${it.sev === 'high' ? 'border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-900/20' : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50'} hover:shadow-sm transition-shadow`}>
+            <div className="text-xs text-fg-3">{it.label}</div>
+            <div className="text-xl font-semibold mt-1 inline-flex items-center gap-1">
+              {it.count}
+              {it.sev === 'high' && it.count > 0 && <span className="text-xs text-amber-600 font-normal">acil</span>}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </Card>
   );
 }
 
