@@ -8,6 +8,7 @@ import { ScrollToTop } from './ScrollToTop';
 import { GlobalShortcuts } from './GlobalShortcuts';
 import { OnboardingBanner } from '@/components/ui/OnboardingBanner';
 import { CompareBar } from './CompareBar';
+import { Breadcrumb } from './Breadcrumb';
 
 export function PublicLayout() {
   const loc = useLocation();
@@ -19,6 +20,11 @@ export function PublicLayout() {
       <OnboardingBanner />
       <TopBar variant="public" />
       <main id="main" tabIndex={-1} className="flex-1">
+        {loc.pathname !== '/' && (
+          <div className="max-w-[1600px] mx-auto px-3 lg:px-6 pt-3">
+            <Breadcrumb />
+          </div>
+        )}
         <Outlet key={loc.pathname} />
       </main>
       <Footer />
