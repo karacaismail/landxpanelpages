@@ -1,6 +1,7 @@
 import React from 'react';
 import { Warning, ArrowClockwise, Sparkle } from '@phosphor-icons/react';
 import { Button } from './Button';
+import { toast } from '@/store/toast';
 
 interface State { hasError: boolean; error?: Error; }
 
@@ -65,7 +66,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
               <Button onClick={this.hardReload} iconLeft={<ArrowClockwise size={16} />}>Sayfayı yenile</Button>
               <Button variant="outline" onClick={this.reset}>Anasayfaya dön</Button>
               {!chunk && (
-                <Button variant="ghost" iconLeft={<Sparkle size={16} weight="fill" />} onClick={() => alert('AI: Hata bildirildi (mock).')}>AI'a bildir</Button>
+                <Button variant="ghost" iconLeft={<Sparkle size={16} weight="fill" />} onClick={() => toast('ai', 'AI bilgilendirildi', 'Hata raporu mock log\'a kaydedildi.')}>AI'a bildir</Button>
               )}
             </div>
           </div>
