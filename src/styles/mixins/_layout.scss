@@ -1,0 +1,26 @@
+@use '../tokens/breakpoints' as *;
+
+@mixin container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 16px;
+
+  @include bp(md) { padding-inline: 24px; }
+  @include bp(lg) { max-width: 720px; padding-inline: 24px; }
+  @include bp(xl) { max-width: 1024px; }
+  @include bp('2xl') { max-width: 1200px; }
+  @include bp('3xl') { max-width: 1440px; }
+  @include bp(tv)    { max-width: 1920px; padding-inline: 48px; }
+}
+
+@mixin stack($gap: 16px) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
+}
+
+@mixin row($gap: 12px) {
+  display: flex;
+  align-items: center;
+  gap: $gap;
+}

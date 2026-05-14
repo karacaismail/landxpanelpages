@@ -1,0 +1,30 @@
+@use 'sass:map';
+
+$bp-map: (
+  xxs: 320px,
+  xs:  375px,
+  sm:  480px,
+  md:  600px,
+  lg:  768px,
+  xl:  1024px,
+  '2xl': 1366px,
+  '3xl': 1600px,
+  tv:   2560px
+);
+
+@mixin bp($key, $orientation: null) {
+  $min: map.get($bp-map, $key);
+  @if $orientation {
+    @media (min-width: $min) and (orientation: $orientation) { @content; }
+  } @else {
+    @media (min-width: $min) { @content; }
+  }
+}
+
+@mixin bp-max($key) {
+  $max: map.get($bp-map, $key) - 1px;
+  @media (max-width: $max) { @content; }
+}
+
+@mixin landscape { @media (orientation: landscape) and (max-height: 500px) { @content; } }
+@mixin portrait  { @media (orientation: portrait) { @content; } }

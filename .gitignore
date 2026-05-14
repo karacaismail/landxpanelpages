@@ -1,7 +1,37 @@
-.DS_Store
+# Logs
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor
+.DS_Store
 .vscode/
 .idea/
-node_modules/
+.fleet/
+
+# Env / secrets
 .env
 .env.local
+.env.*.local
+*.pem
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Test caches
+coverage/
+.tmp/
+.cache/
+
+# TS incremental build info
+*.tsbuildinfo
+
+# OS junk
+Thumbs.db

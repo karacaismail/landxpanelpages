@@ -1,57 +1,109 @@
-# LandX — AI-first Arsa Pazaryeri (Frontend)
+# LandX — AI-First Arsa Pazaryeri
 
-Vanilla HTML + CSS + JS ile inşa edilmiş, mobile-first, dark/light tema destekli SaaS panel demosu. Tek sayfa uygulama (SPA); hash router, in-memory state, framework yok.
+Frontend-only, enterprise-ready SaaS (mock) for Türkiye land marketplace.  
+Live: <https://karacaismail.github.io/landxpanelpages/>
 
-## Roller ve ekranlar
+## Yığın
+- **Vite 5 + React 18 + TypeScript 5**
+- **Tailwind CSS + SCSS tokens + Flowbite React + Phosphor Icons**
+- **react-router-dom v6** (HashRouter for GH Pages)
+- **Zustand** state, **TanStack Query** & **Table**, **React Hook Form + Zod**
+- **i18next** (TR/EN), **date-fns**, **Recharts**, **Leaflet/react-leaflet**
+- **@faker-js/faker (tr)** deterministik seed
+- **Vitest + Testing Library** birim test
 
-**Alıcı:** Keşfet (AI doğal dil arama + filtre chip'leri), Listing Detail (AI değerleme bandı + spec grid + Mesaj/Teklif CTA), Favoriler, Mesajlar (thread liste + chat + AI hızlı yanıt şablonu).
+Frontend-only — gerçek backend yok. MSW veya doğrudan seed kullanılıyor.
 
-**Satıcı / Emlakçı:** İlanlarım (status badge'li kart), Yeni İlan Wizard (Konum → Detaylar → Fiyat AI önerisi → Yayınla), Gelen Teklifler (kabul/red 1-tık), Performans (KPI + SVG sparkline).
-
-**Yönetici:** Onay Kuyruğu (AI risk skoru + 1-tık onay/red), Kullanıcılar (rol filtre), Raporlar (KPI + grafik + en çok ilgi gören ilanlar).
-
-## AI özellikleri (sahte/simüle)
-
-- Doğal dil arama parser (`İstanbul konut 5M altı temiz tapu` → otomatik filtre).
-- Fiyat tahmini (`il × imar × emsal` çarpan modeli) ve 1-tık uygulama.
-- Açıklama yazıcı (template tabanlı).
-- Risk skoru (low/medium/high + sebep) onay kuyruğunda.
-- Mesajlarda rol bazlı hızlı yanıt şablonları.
-
-## Stack
-
-- HTML5 + CSS3 (custom design system, ~850 satır) + Vanilla JS (~1250 satır).
-- Phosphor Icons (CDN), Outfit font (Google Fonts).
-- Build adımı yok — `index.html` doğrudan açılabilir veya statik host edilebilir.
-
-## Yerel geliştirme
+## Hızlı Başlangıç
 
 ```bash
-# herhangi bir statik server
-python3 -m http.server 8000
-# veya
-npx serve .
+npm install --legacy-peer-deps
+npm run dev          # http://localhost:5173/landxpanelpages/
 ```
 
-Sonra `http://localhost:8000` adresinde aç.
+## Komutlar
 
-## Yayın
+- `npm run dev` — geliştirme
+- `npm run build` — typecheck + üretim
+- `npm run build:force` — sadece üretim (CI hızlı yol)
+- `npm run preview` — dist önizleme
+- `npm test` — Vitest
+- `npm run typecheck` — TS tip kontrolü
 
-Bu repo GitHub Pages üzerinde yayınlanır:
-https://karacaismail.github.io/landxpanelpages/
-
-## Klasör yapısı
+## Klasör
 
 ```
-index.html         # app shell (header, sidebar, bottom-nav, sheet/toast host)
-css/style.css      # mobile-first design system + 11 ekranın bileşenleri
-js/data.js         # USERS, LISTINGS, MESSAGES, OFFERS, AI yardımcıları, in-memory State
-js/app.js          # router, view renderer'ları, event delegation
+src/
+├─ types/           Domain types
+├─ data/            Faker generators + seed
+├─ store/           Zustand slices
+├─ lib/
+│   ├─ ai/          mock LLM + nl-parser + value-estimator + risk-scorer
+│   ├─ eca/         engine
+│   ├─ tkgm/        mock API
+│   └─ permissions/ rbac
+├─ i18n/            TR/EN
+├─ styles/          tokens, mixins, globals (SCSS)
+├─ components/      ui, layout, data
+└─ features/
+    ├─ auth/        Login/Register
+    ├─ public/      Home/Discover/ListingDetail/Account/...
+    ├─ seller/      MyListings/Wizard/Offers/Performance
+    └─ admin/       Approvals/Users/Rules/Audit/Reports/TKGM/Modules/...
 ```
 
-## Mobile-first kurallar
+## Roller
+- **Alıcı**: keşfet, favori, kaydedilmiş arama, karşılaştır, mesaj, teklif, randevu
+- **Satıcı/Emlakçı**: ilan yayını (6 adım wizard + AI), teklif yönetimi, performans
+- **Yönetici**: onay kuyruğu, kullanıcılar, ECA kuralları, denetim izi, raporlar, TKGM, modüller
 
-- Base styles 375px telefon için.
-- `@media (min-width: 768px)` tablet, `@media (min-width: 1024px)` desktop.
-- Touch target min 48px, `100dvh` + `safe-area-inset` desteği.
-- Mobile bottom nav, desktop sidebar (rol bazlı 3-4 öğe).
+## AI dokunuşları
+- Cmd/Ctrl+K **AI komut paleti** — niyet/komut tek alanda
+- **AI yardımcı drawer** (Cmd/Ctrl+J) — sohbet / öneriler / otomasyonlar
+- Her tabloda **AI öneri** ve **akıllı toplu aksiyon**
+- Her formda **AI ile doldur** + **doğal dilden parse**
+- Risk Badge + LIME-vari açıklama
+- AI Değerleme bandı (alt/önerilen/üst + güven %)
+- ECA görsel kural seti (24 hazır kural)
+
+## Klavye kısayolları
+Detay için `/help` rotasını ziyaret edin.
+
+## Belgeler
+
+| Doküman | İçerik |
+|---|---|
+| `docs/EXCEL_AUDIT.md` | Excel master tüm sayfalar + alan dökümü |
+| `docs/MODULES.md` | 33 modül özet kataloğu |
+| `docs/AI_FIRST_RULES.md` | UX/UED kuralları (header/footer/field-level) |
+| `docs/ADAPTIVE_DESIGN.md` | Cihaz matrisi (320–2560px) |
+| `docs/META_FRAMEWORK_2030.md` | Admin paneli vibecoding rehberi |
+| `docs/FRONTPAGES_META_FRAMEWORK_2030.md` | Public storefront vibecoding rehberi |
+| `docs/data-schema.md` | Mock veri şeması |
+| `docs/component-architecture.md` | Bileşen hiyerarşisi |
+| `docs/excel-mapping.md` | Excel modülü → UI route eşlemesi |
+| `docs/eca-rules.md` | ECA dilbilgisi + 24 örnek kural |
+| `docs/test-plan.md` | Vitest + Playwright |
+| `docs/deploy.md` | CI + Pages |
+
+## Deploy
+
+GitHub Actions ile otomatik:
+1. `main` dalına push → `.github/workflows/deploy.yml` build edip `dist/`'i Pages artifact olarak yükler
+2. **GitHub repo Settings → Pages → Source: GitHub Actions** olarak ayarlayın (manuel adım; bir kez)
+3. URL: `https://karacaismail.github.io/landxpanelpages/`
+
+Yerel build & preview:
+```bash
+npm run build:force
+npm run preview     # http://localhost:4173/landxpanelpages/
+```
+
+## Demo data (deterministik, seed=42)
+- 60 kullanıcı (alıcı/satıcı/admin/moderator)
+- 220 ilan (81 il, 8 imar, 5 tapu, 5 TKGM durumu)
+- 120 teklif · 40 thread · 300 mesaj · 35 randevu · 80 favori · 22 kayıtlı arama
+- 24 ECA kuralı (15 etkin) · 140 bildirim · 500 denetim olayı · 60 TKGM sorgusu
+
+## Lisans
+Demo amaçlı.

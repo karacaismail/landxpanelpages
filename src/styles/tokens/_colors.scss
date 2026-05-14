@@ -1,0 +1,56 @@
+:root {
+  --brand-50:  #e6f4ee;
+  --brand-100: #c8e9d8;
+  --brand-200: #9ed5b9;
+  --brand-300: #6dbc99;
+  --brand-400: #3fa07c;
+  --brand-500: #0e7c61;
+  --brand-600: #0a6552;
+  --brand-700: #08503f;
+  --brand-800: #073e30;
+  --brand-900: #052a22;
+
+  --accent-500: #c97f1d;
+  --accent-600: #a76414;
+
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger:  #dc2626;
+  --info:    #2563eb;
+
+  --bg-1: #ffffff;
+  --bg-2: #f8fafc;
+  --bg-3: #f1f5f9;
+  --bg-4: #e2e8f0;
+
+  --fg-1: #0f172a;
+  --fg-2: #334155;
+  --fg-3: #64748b;
+  --fg-4: #94a3b8;
+
+  --border-1: #e2e8f0;
+  --border-2: #cbd5e1;
+
+  --primary: var(--brand-500);
+  --primary-hover: var(--brand-600);
+  --primary-fg: #ffffff;
+}
+
+[data-theme='dark'] {
+  --bg-1: #0b1220;
+  --bg-2: #0f172a;
+  --bg-3: #1e293b;
+  --bg-4: #334155;
+
+  --fg-1: #f8fafc;
+  --fg-2: #e2e8f0;
+  --fg-3: #94a3b8;
+  --fg-4: #64748b;
+
+  --border-1: #334155;
+  --border-2: #475569;
+
+  --primary: var(--brand-400);
+  --primary-hover: var(--brand-300);
+  --primary-fg: #052a22;
+}

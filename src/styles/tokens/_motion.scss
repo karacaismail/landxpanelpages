@@ -1,0 +1,16 @@
+:root {
+  --m-fast: 120ms cubic-bezier(0.2, 0, 0.2, 1);
+  --m-med:  200ms cubic-bezier(0.2, 0, 0.2, 1);
+  --m-slow: 400ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --m-fast: 0ms;
+    --m-med:  0ms;
+    --m-slow: 0ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}
