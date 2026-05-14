@@ -12,6 +12,17 @@ import { formatRelTime } from '@/lib/utils/format';
 import { nanoid } from 'nanoid';
 import type { Message } from '@/types/domain';
 
+function dayLabel(iso: string, locale: 'tr' | 'en'): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  const yest = new Date(now.getTime() - 86400_000);
+  const sameYest = d.toDateString() === yest.toDateString();
+  if (sameDay) return locale === 'tr' ? 'Bugün' : 'Today';
+  if (sameYest) return locale === 'tr' ? 'Dün' : 'Yesterday';
+  return d.toLocaleDateString(locale === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export default function MessagesPage() {
   const { t, i18n } = useTranslation();
   const auth = useAuth();
@@ -97,19 +108,36 @@ export default function MessagesPage() {
                 <div className="text-xs text-fg-3">{active.participantIds.map((id) => data.users.find((u) => u.id === id)?.displayName).join(' · ')}</div>
               </div>
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                {messages.map((m) => (
-                  <div key={m.id} className={cls('flex', m.senderId === me.id ? 'justify-end' : 'justify-start')}>
-                    <div className={cls(
-                      'max-w-[80%] rounded-r-3 px-3 py-2 text-sm',
-                      m.senderId === me.id ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-fg-1'
-                    )}>
-                      {m.body}
-                      <div className={cls('text-[10px] mt-1', m.senderId === me.id ? 'text-white/70' : 'text-fg-3')}>
-                        {formatRelTime(m.createdAt, locale)}
+                {(() => {
+                  // Tarih grubu ayraçları
+                  const result: React.ReactNode[] = [];
+                  let lastDay = '';
+                  for (const m of messages) {
+                    const d = dayLabel(m.createdAt, locale);
+                    if (d !== lastDay) {
+                      result.push(
+                        <div key={`sep-${m.id}`} className="text-center my-2">
+                          <span className="inline-block text-[11px] text-fg-3 bg-slate-100 dark:bg-slate-800 rounded-full px-2 py-0.5">{d}</span>
+                        </div>
+                      );
+                      lastDay = d;
+                    }
+                    result.push(
+                      <div key={m.id} className={cls('flex', m.senderId === me.id ? 'justify-end' : 'justify-start')}>
+                        <div className={cls(
+                          'max-w-[80%] rounded-r-3 px-3 py-2 text-sm',
+                          m.senderId === me.id ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-fg-1'
+                        )}>
+                          {m.body}
+                          <div className={cls('text-[10px] mt-1', m.senderId === me.id ? 'text-white/70' : 'text-fg-3')}>
+                            {formatRelTime(m.createdAt, locale)}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  }
+                  return result;
+                })()}
               </div>
               {/* AI taslak yanıtlar */}
               {messages.slice(-1)[0]?.aiSuggestedReplies && (
