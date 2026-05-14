@@ -82,10 +82,22 @@ export function CommandPalette() {
   }, [auth.role, navigate, t, data.users, auth, ui]);
 
   const filtered = useMemo(() => {
-    if (!q.trim()) return cmds;
+    if (!q.trim()) {
+      // Son komutları önde göster (LocalStorage)
+      const recentIds: string[] = JSON.parse(localStorage.getItem('landx:cmd:recent') || '[]') as string[];
+      const recentCmds = recentIds.map((id) => cmds.find((c) => c.id === id)).filter(Boolean) as typeof cmds;
+      const rest = cmds.filter((c) => !recentIds.includes(c.id));
+      return [...recentCmds, ...rest];
+    }
     const nq = q.toLocaleLowerCase('tr-TR');
     return cmds.filter((c) => c.label.toLocaleLowerCase('tr-TR').includes(nq) || c.id.includes(nq));
   }, [cmds, q]);
+
+  function recordRecent(id: string) {
+    const recent: string[] = JSON.parse(localStorage.getItem('landx:cmd:recent') || '[]') as string[];
+    const next = [id, ...recent.filter((x) => x !== id)].slice(0, 5);
+    localStorage.setItem('landx:cmd:recent', JSON.stringify(next));
+  }
 
   // Listing arama önerisi
   const listingHit = useMemo(() => {
@@ -108,7 +120,7 @@ export function CommandPalette() {
       else if (e.key === 'Enter') {
         e.preventDefault();
         const all = [
-          ...filtered.map((c) => () => { c.run(); ui.setPalette(false); }),
+          ...filtered.map((c) => () => { recordRecent(c.id); c.run(); ui.setPalette(false); }),
           ...(listingHit || []).map((l) => () => { navigate(`/listings/${l.id}`); ui.setPalette(false); })
         ];
         all[active]?.();
@@ -142,7 +154,7 @@ export function CommandPalette() {
               {filtered.map((c, i) => (
                 <button
                   key={c.id}
-                  onClick={() => { c.run(); ui.setPalette(false); }}
+                  onClick={() => { recordRecent(c.id); c.run(); ui.setPalette(false); }}
                   className={cls(
                     'w-full text-left flex items-center gap-3 px-4 py-2 text-sm',
                     i === active ? 'bg-brand-50 dark:bg-brand-900/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
