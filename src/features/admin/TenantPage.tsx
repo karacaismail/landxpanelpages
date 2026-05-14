@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SectionHeading } from '@/components/data/SectionHeading';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Buildings, Users, ShieldCheck, Pulse, Sparkle, Hourglass, CheckCircle, Archive } from '@phosphor-icons/react';
+import { Buildings, Users, ShieldCheck, Pulse, Sparkle, Hourglass, CheckCircle, Archive, X, ArrowRight, ArrowLeft } from '@phosphor-icons/react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { cls } from '@/lib/utils/cls';
+import { toast } from '@/store/toast';
 
 type TenantStatus = 'active' | 'suspended' | 'archived' | 'provisioning';
 
@@ -52,23 +54,58 @@ const USAGE_30D = Array.from({ length: 30 }, (_, i) => ({
 }));
 
 export default function TenantPage() {
+  const [tenants, setTenants] = useState<TenantRow[]>(TENANTS);
   const [selected, setSelected] = useState<TenantRow>(TENANTS[0]);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setWizardOpen(true);
+      searchParams.delete('new');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  function addTenant(input: { name: string; domain: string; plan: TenantRow['plan']; region: string }) {
+    const id = `t-${String(tenants.length + 1).padStart(3, '0')}`;
+    const newTenant: TenantRow = {
+      id,
+      name: input.name,
+      domain: input.domain,
+      status: 'provisioning',
+      plan: input.plan,
+      users: 0,
+      listings: 0,
+      storageGb: 0,
+      createdAt: new Date().toISOString().slice(0, 10)
+    };
+    setTenants((prev) => [...prev, newTenant]);
+    setSelected(newTenant);
+    setWizardOpen(false);
+    toast('success', 'Tenant provisioning başladı', `${input.name} (${input.domain}) — schema oluşturuluyor (mock).`);
+    setTimeout(() => {
+      setTenants((prev) => prev.map((t) => t.id === id ? { ...t, status: 'active' as TenantStatus } : t));
+      setSelected((cur) => cur.id === id ? { ...cur, status: 'active' as TenantStatus } : cur);
+      toast('success', 'Provisioning tamam', `${input.name} aktif. Demo seed atandı.`);
+    }, 4000);
+  }
 
   return (
     <div>
       <SectionHeading title="Tenant Lifecycle (I01)" description="Multi-tenant provisioning · kota · izolasyon · arşivleme" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <Stat label="Tenant" value={TENANTS.length} icon={<Buildings size={20} weight="fill" />} />
-        <Stat label="Aktif" value={TENANTS.filter((t) => t.status === 'active').length} icon={<CheckCircle size={20} weight="fill" />} />
-        <Stat label="Toplam kullanıcı" value={TENANTS.reduce((s, t) => s + t.users, 0)} icon={<Users size={20} weight="fill" />} />
+        <Stat label="Tenant" value={tenants.length} icon={<Buildings size={20} weight="fill" />} />
+        <Stat label="Aktif" value={tenants.filter((t) => t.status === 'active').length} icon={<CheckCircle size={20} weight="fill" />} />
+        <Stat label="Toplam kullanıcı" value={tenants.reduce((s, t) => s + t.users, 0)} icon={<Users size={20} weight="fill" />} />
         <Stat label="İzolasyon ihlali" value={0} icon={<ShieldCheck size={20} weight="fill" />} hint="I05 enforcement" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Tenant list */}
         <div className="lg:col-span-1 space-y-2">
-          {TENANTS.map((t) => {
+          {tenants.map((t) => {
             const s = STATUS_LABEL[t.status];
             const active = selected.id === t.id;
             return (
@@ -86,7 +123,7 @@ export default function TenantPage() {
               </button>
             );
           })}
-          <Button block variant="outline" iconLeft={<Sparkle size={14} weight="fill" />}>+ Yeni tenant (provisioning)</Button>
+          <Button block variant="outline" onClick={() => setWizardOpen(true)} iconLeft={<Sparkle size={14} weight="fill" />}>+ Yeni tenant (provisioning)</Button>
         </div>
 
         {/* Detail */}
@@ -170,6 +207,201 @@ export default function TenantPage() {
             </div>
           </Card>
         </div>
+      </div>
+      {wizardOpen && <NewTenantWizard onClose={() => setWizardOpen(false)} onCreate={addTenant} />}
+    </div>
+  );
+}
+
+function NewTenantWizard({ onClose, onCreate }: { onClose: () => void; onCreate: (input: { name: string; domain: string; plan: TenantRow['plan']; region: string }) => void }) {
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState('');
+  const [domain, setDomain] = useState('');
+  const [plan, setPlan] = useState<TenantRow['plan']>('pro');
+  const [region, setRegion] = useState('eu-west-1');
+  const [aiSeed, setAiSeed] = useState(true);
+  const [provisioning, setProvisioning] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !provisioning) onClose();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, provisioning]);
+
+  const slug = name.toLocaleLowerCase('tr-TR').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32);
+  useEffect(() => {
+    if (slug && !domain) setDomain(`${slug}.landx.test`);
+  }, [slug, domain]);
+
+  const PROVISIONING_STEPS = [
+    'Şema oluşturuluyor (tenant_xxx)',
+    'Veritabanı izolasyonu kuruluyor',
+    'Varsayılan roller ve izinler tanımlanıyor',
+    'AI ajan kapsamları bağlanıyor',
+    'Demo seed verileri yerleştiriliyor',
+    'Bildirim şablonları senkronlanıyor',
+    'KVKK politikaları aktive ediliyor'
+  ];
+
+  function startProvisioning() {
+    setProvisioning(true);
+    setStep(4);
+    let i = 0;
+    const tick = () => {
+      i++;
+      setProgress(i);
+      if (i < PROVISIONING_STEPS.length) {
+        setTimeout(tick, 400 + Math.random() * 350);
+      } else {
+        setTimeout(() => onCreate({ name, domain, plan, region }), 400);
+      }
+    };
+    setTimeout(tick, 300);
+  }
+
+  const canNext1 = name.trim().length >= 3;
+  const canNext2 = /^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain.toLowerCase());
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Yeni tenant" className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-3" onClick={() => !provisioning && onClose()}>
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-r-4 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-brand-50/60 to-transparent dark:from-brand-900/30">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-r-2 bg-brand-100 dark:bg-brand-900/50 grid place-items-center text-brand-600"><Sparkle size={16} weight="fill" /></div>
+            <div>
+              <div className="font-medium text-sm">Yeni tenant provisioning</div>
+              <div className="text-[11px] text-fg-3">{step}/4 — AI yardımcı yanınızda</div>
+            </div>
+          </div>
+          {!provisioning && (
+            <button onClick={onClose} className="p-2 rounded-r-2 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Kapat"><X size={18} /></button>
+          )}
+        </div>
+
+        <div className="px-4 pt-3">
+          <div className="flex gap-1 mb-3">
+            {[1, 2, 3, 4].map((s) => (
+              <div key={s} className={cls('flex-1 h-1 rounded-full transition-colors', step >= s ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700')} />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+          {step === 1 && (
+            <>
+              <h3 className="font-medium">1. Tenant adı</h3>
+              <p className="text-sm text-fg-3">Müşteri / şirket adı. En az 3 karakter.</p>
+              <Input label="Tenant adı" value={name} onChange={(e) => setName(e.target.value)} placeholder="örn. Çukurova Mülk Grubu" block />
+              {slug && (
+                <div className="text-xs text-fg-3">
+                  Slug: <code className="text-fg-1">{slug}</code>
+                </div>
+              )}
+              <div className="bg-brand-50 dark:bg-brand-900/30 rounded-r-2 p-3 text-sm">
+                <div className="flex items-center gap-1.5 mb-1"><Sparkle size={14} weight="fill" className="text-brand-500" /> <strong>AI önerisi:</strong></div>
+                <p className="text-fg-2">Tenant adı 3-32 karakter arasında, Türkçe karakter desteklenir. Domain otomatik üretilir, sonraki adımda düzenleyebilirsiniz.</p>
+              </div>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <h3 className="font-medium">2. Domain & Plan</h3>
+              <Input label="Subdomain (custom domain sonradan eklenir)" value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="cukurova.landx.test" block />
+              {domain && !canNext2 && <div className="text-xs text-rose-600">Geçersiz domain formatı (örn: ad.landx.test).</div>}
+
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {(['starter', 'pro', 'enterprise', 'demo'] as TenantRow['plan'][]).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPlan(p)}
+                    className={cls('text-left p-3 rounded-r-2 border-2 transition-colors', plan === p ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800')}
+                  >
+                    <div className="font-medium capitalize text-sm">{p}</div>
+                    <div className="text-xs text-fg-3">{PLAN_QUOTAS[p].price}</div>
+                    <div className="text-[11px] text-fg-3 mt-1">
+                      {PLAN_QUOTAS[p].listings.toLocaleString('tr-TR')} ilan · {PLAN_QUOTAS[p].users} kullanıcı · {PLAN_QUOTAS[p].storage} GB
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium block mt-2">Bölge</label>
+                <select value={region} onChange={(e) => setRegion(e.target.value)} className="mt-1 w-full rounded-r-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm min-h-[44px]">
+                  <option value="eu-west-1">eu-west-1 (Frankfurt) — KVKK uyumlu</option>
+                  <option value="eu-central-1">eu-central-1 (Frankfurt)</option>
+                  <option value="tr-1">tr-1 (İstanbul) — özel bölge</option>
+                </select>
+              </div>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <h3 className="font-medium">3. Özet & Onay</h3>
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm bg-slate-50 dark:bg-slate-800/50 rounded-r-2 p-3">
+                <dt className="text-fg-3">Ad</dt><dd className="font-medium">{name}</dd>
+                <dt className="text-fg-3">Domain</dt><dd className="font-medium"><code>{domain}</code></dd>
+                <dt className="text-fg-3">Plan</dt><dd className="font-medium capitalize">{plan}</dd>
+                <dt className="text-fg-3">Bölge</dt><dd>{region}</dd>
+                <dt className="text-fg-3">Schema</dt><dd><code>tenant_{slug.slice(0, 8)}</code></dd>
+                <dt className="text-fg-3">İzolasyon</dt><dd>schema-per-tenant</dd>
+              </dl>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input type="checkbox" checked={aiSeed} onChange={(e) => setAiSeed(e.target.checked)} className="mt-1" />
+                <span className="text-sm">
+                  <strong>AI demo seed</strong> ile başlat
+                  <span className="block text-xs text-fg-3">10 örnek ilan, 5 kullanıcı, 3 ECA kuralı otomatik yüklenir.</span>
+                </span>
+              </label>
+              <div className="text-xs text-fg-3 mt-2">
+                Onayladıktan sonra DB schema, izinler, ajan kapsamları ve KVKK politikaları otomatik kurulur. Tahmini süre: 25-40 saniye.
+              </div>
+            </>
+          )}
+          {step === 4 && (
+            <>
+              <h3 className="font-medium inline-flex items-center gap-2">
+                <Sparkle size={16} weight="fill" className="text-brand-500 animate-pulse" /> Provisioning sürüyor...
+              </h3>
+              <div className="space-y-2 mt-2">
+                {PROVISIONING_STEPS.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm">
+                    {i < progress
+                      ? <CheckCircle size={16} weight="fill" className="text-emerald-500" />
+                      : i === progress
+                        ? <Hourglass size={16} weight="fill" className="text-brand-500 animate-pulse" />
+                        : <span className="w-4 h-4 rounded-full border-2 border-slate-300 dark:border-slate-700" />}
+                    <span className={cls(i < progress ? 'text-fg-1' : 'text-fg-3')}>{s}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-brand-500 transition-all" style={{ width: `${(progress / PROVISIONING_STEPS.length) * 100}%` }} />
+              </div>
+            </>
+          )}
+        </div>
+
+        {!provisioning && (
+          <div className="border-t border-slate-200 dark:border-slate-800 px-4 py-3 flex justify-between gap-2">
+            <Button variant="ghost" onClick={() => step === 1 ? onClose() : setStep((s) => s - 1)} iconLeft={<ArrowLeft size={14} />}>
+              {step === 1 ? 'İptal' : 'Geri'}
+            </Button>
+            {step < 3 && (
+              <Button onClick={() => setStep((s) => s + 1)} disabled={(step === 1 && !canNext1) || (step === 2 && !canNext2)} iconRight={<ArrowRight size={14} />}>
+                Devam
+              </Button>
+            )}
+            {step === 3 && (
+              <Button onClick={startProvisioning} iconRight={<Sparkle size={14} weight="fill" />}>
+                Provisioning başlat
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
