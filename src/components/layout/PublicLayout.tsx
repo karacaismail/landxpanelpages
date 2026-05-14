@@ -7,11 +7,13 @@ import { NotificationsDrawer } from './NotificationsDrawer';
 import { ScrollToTop } from './ScrollToTop';
 import { GlobalShortcuts } from './GlobalShortcuts';
 import { OnboardingBanner } from '@/components/ui/OnboardingBanner';
+import { CompareBar } from './CompareBar';
 
 export function PublicLayout() {
   const loc = useLocation();
   return (
     <div className="min-h-dvh flex flex-col bg-bg-2">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-brand-500 focus:text-white focus:px-3 focus:py-2 focus:rounded-r-2">Ana içeriğe atla</a>
       <ScrollToTop />
       <GlobalShortcuts />
       <OnboardingBanner />
@@ -23,6 +25,7 @@ export function PublicLayout() {
       <CommandPalette />
       <AssistantDrawer />
       <NotificationsDrawer />
+      <CompareBar />
     </div>
   );
 }

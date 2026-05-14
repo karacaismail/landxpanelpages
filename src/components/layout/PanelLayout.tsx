@@ -17,6 +17,7 @@ export function PanelLayout({ variant }: Props) {
   const ui = useUi();
   return (
     <div className="min-h-dvh bg-bg-2">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-brand-500 focus:text-white focus:px-3 focus:py-2 focus:rounded-r-2">Ana içeriğe atla</a>
       <ScrollToTop />
       <GlobalShortcuts />
       <TopBar variant="panel" onOpenSidebar={() => ui.setMobileNav(true)} />
