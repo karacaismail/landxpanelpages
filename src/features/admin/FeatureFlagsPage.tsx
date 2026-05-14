@@ -70,7 +70,7 @@ const CATEGORY_LABEL: Record<FeatureFlag['category'], { tr: string; cls: string 
 
 export default function FeatureFlagsPage() {
   const [flags, setFlags] = useState<FeatureFlag[]>(FLAGS);
-  const [tab, setTab] = useState<'flags' | 'config' | 'di'>('flags');
+  const [tab, setTab] = useState<'flags' | 'config' | 'di' | 'secrets'>('flags');
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState<'all' | FeatureFlag['category']>('all');
 
@@ -119,6 +119,7 @@ export default function FeatureFlagsPage() {
         {[
           { id: 'flags' as const, label: 'Feature Flags', Icon: ToggleRight },
           { id: 'config' as const, label: 'Configuration', Icon: Sliders },
+          { id: 'secrets' as const, label: 'Secrets', Icon: ShieldCheck },
           { id: 'di' as const, label: 'Service Container (DI)', Icon: Code }
         ].map(({ id, label, Icon }) => (
           <button key={id} onClick={() => setTab(id)} className={cls(
@@ -158,6 +159,7 @@ export default function FeatureFlagsPage() {
       {tab === 'config' && <ConfigTable />}
 
       {tab === 'di' && <ServiceContainerView />}
+      {tab === 'secrets' && <SecretsView />}
     </div>
   );
 }
@@ -287,6 +289,68 @@ function ServiceContainerView() {
           ))}
         </tbody>
       </table>
+    </Card>
+  );
+}
+
+// K05 Secrets Resolution — vault references, rotation status
+function SecretsView() {
+  const SECRETS = [
+    { key: 'CLAUDE_API_KEY', ref: 'vault://landx/ai/anthropic', rotation: '30g', lastRotated: '2026-05-01', usage: 'A07 LLM Provider', accessControl: 'agent-runtime', status: 'fresh' },
+    { key: 'OPENAI_API_KEY', ref: 'vault://landx/ai/openai', rotation: '30g', lastRotated: '2026-04-22', usage: 'A07 (failover)', accessControl: 'agent-runtime', status: 'fresh' },
+    { key: 'TKGM_API_KEY', ref: 'vault://landx/integrations/tkgm', rotation: '60g', lastRotated: '2026-04-08', usage: 'TkgmPage', accessControl: 'tkgm-integration', status: 'warn' },
+    { key: 'IYZICO_SECRET', ref: 'vault://landx/payments/iyzico', rotation: '90g', lastRotated: '2026-03-15', usage: 'Payments', accessControl: 'payments', status: 'warn' },
+    { key: 'SENDGRID_API_KEY', ref: 'vault://landx/comms/sendgrid', rotation: '60g', lastRotated: '2026-04-30', usage: 'S05 Notifications (email)', accessControl: 'notifications', status: 'fresh' },
+    { key: 'TWILIO_AUTH_TOKEN', ref: 'vault://landx/comms/twilio', rotation: '60g', lastRotated: '2026-05-08', usage: 'S05 Notifications (SMS)', accessControl: 'notifications', status: 'fresh' },
+    { key: 'JWT_SIGNING_KEY', ref: 'vault://landx/auth/jwt', rotation: '180g', lastRotated: '2026-02-12', usage: 'I03 Authentication', accessControl: 'auth-svc', status: 'fresh' },
+    { key: 'AUDIT_HASH_KEY', ref: 'vault://landx/security/audit-hmac', rotation: 'kalıcı', lastRotated: '2025-09-01', usage: 'D01 Audit hash-chain', accessControl: 'audit-svc', status: 'fresh' },
+    { key: 'EDEVLET_SECRET', ref: 'vault://landx/integrations/edevlet', rotation: '90g', lastRotated: '2026-02-20', usage: 'e-Devlet KYC', accessControl: 'identity-svc', status: 'critical' },
+    { key: 'STRIPE_WEBHOOK_SECRET', ref: 'vault://landx/payments/stripe-webhook', rotation: '90g', lastRotated: '2026-04-12', usage: 'Webhooks', accessControl: 'payments', status: 'fresh' }
+  ];
+  const STATUS_CLS: Record<string, string> = {
+    fresh: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    warn: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    critical: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'
+  };
+  const STATUS_TR: Record<string, string> = { fresh: 'taze', warn: 'rotasyona yakın', critical: 'gecikti' };
+  return (
+    <Card>
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div>
+          <h3 className="font-medium inline-flex items-center gap-2"><ShieldCheck size={14} weight="fill" className="text-emerald-500" /> Secrets Vault</h3>
+          <p className="text-sm text-fg-3">Tüm gizli anahtarlar vault'tan referans olarak çözülür. Doğrudan değer ekranda görünmez.</p>
+        </div>
+        <Button size="sm" iconLeft={<Plus size={14} />} onClick={() => toast('success', 'Yeni secret', 'Vault\'a yeni anahtar referansı eklendi.')}>Secret ekle</Button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-fg-3 text-xs">
+              <th className="text-left py-2">Anahtar</th>
+              <th className="text-left py-2 hidden sm:table-cell">Vault referansı</th>
+              <th className="text-left py-2 hidden md:table-cell">Kullanım</th>
+              <th className="text-left py-2 hidden lg:table-cell">Erişim</th>
+              <th className="text-left py-2">Rotation</th>
+              <th className="text-right py-2">Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SECRETS.map((s) => (
+              <tr key={s.key} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                <td className="py-2"><code className="text-xs font-medium">{s.key}</code></td>
+                <td className="py-2 hidden sm:table-cell"><code className="text-[11px] text-fg-3">{s.ref}</code></td>
+                <td className="py-2 hidden md:table-cell text-xs">{s.usage}</td>
+                <td className="py-2 hidden lg:table-cell text-xs"><code>{s.accessControl}</code></td>
+                <td className="py-2 text-xs"><strong>{s.rotation}</strong> · son: {s.lastRotated}</td>
+                <td className="py-2 text-right"><span className={cls('text-[10px] uppercase px-1.5 py-0.5 rounded font-bold', STATUS_CLS[s.status])}>{STATUS_TR[s.status]}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-3 text-xs text-fg-3">
+        <strong>{SECRETS.filter((s) => s.status === 'critical').length}</strong> kritik · <strong>{SECRETS.filter((s) => s.status === 'warn').length}</strong> uyarı · <strong>{SECRETS.filter((s) => s.status === 'fresh').length}</strong> taze
+      </div>
     </Card>
   );
 }

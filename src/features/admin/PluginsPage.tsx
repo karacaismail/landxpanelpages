@@ -48,7 +48,7 @@ const REVIEW_HISTORY = [
 
 export default function PluginsPage() {
   const { section } = useParams();
-  const view = section === 'marketplace' ? 'marketplace' : section === 'security' ? 'security' : section === 'migrations' ? 'migrations' : 'installed';
+  const view = section === 'marketplace' ? 'marketplace' : section === 'security' ? 'security' : section === 'migrations' ? 'migrations' : section === 'developer' ? 'developer' : 'installed';
   return (
     <div>
       <SectionHeading title="Eklentiler" description="K01 Plugin Lifecycle · K03 Migration · O02 Marketplace · O03 Security Review" />
@@ -65,10 +65,12 @@ export default function PluginsPage() {
         <Link to="/admin/plugins/marketplace"><Button size="sm" variant={view === 'marketplace' ? 'primary' : 'outline'} iconLeft={<Storefront size={14} />}>Marketplace ({PLUGINS.length})</Button></Link>
         <Link to="/admin/plugins/migrations"><Button size="sm" variant={view === 'migrations' ? 'primary' : 'outline'} iconLeft={<GitBranch size={14} />}>Migrations</Button></Link>
         <Link to="/admin/plugins/security"><Button size="sm" variant={view === 'security' ? 'primary' : 'outline'} iconLeft={<ShieldCheck size={14} />}>Güvenlik ({REVIEW_QUEUE.length})</Button></Link>
+        <Link to="/admin/plugins/developer"><Button size="sm" variant={view === 'developer' ? 'primary' : 'outline'} iconLeft={<Database size={14} />}>Developer</Button></Link>
       </div>
 
       {view === 'security' && <SecurityReview />}
       {view === 'migrations' && <MigrationCenter />}
+      {view === 'developer' && <DeveloperDashboard />}
       {(view === 'installed' || view === 'marketplace') && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {PLUGINS.filter((p) => view === 'installed' ? p.installed : true).map((p) => <PluginCard key={p.id} p={p} />)}
@@ -260,6 +262,130 @@ function MigrationCenter() {
                 {m.status === 'success' && <Button size="xs" variant="ghost" iconLeft={<ArrowCounterClockwise size={12} />} onClick={() => toast('warning', 'Rollback', `${m.plugin} ${m.to}→${m.from} rollback başlatıldı (mock).`)}>Rollback</Button>}
                 {m.status === 'failed' && <Button size="xs" variant="outline">Logları gör</Button>}
               </div>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+// O02 Plugin Marketplace — Developer Dashboard: revenue, license keys, reviews
+function DeveloperDashboard() {
+  const REVENUE = [
+    { month: 'Aralık', amount: 4280, installs: 142 },
+    { month: 'Ocak', amount: 5240, installs: 168 },
+    { month: 'Şubat', amount: 6820, installs: 184 },
+    { month: 'Mart', amount: 7140, installs: 198 },
+    { month: 'Nisan', amount: 8420, installs: 224 },
+    { month: 'Mayıs', amount: 9840, installs: 268 }
+  ];
+  const LICENSES = [
+    { id: 'lic-001', plugin: 'TKGM Connector', tenant: 'Anadolu Yatırım', tier: 'enterprise', key: 'LX-TKGM-A4F8-2026', issuedAt: '2026-01-12', expiresAt: '2027-01-12', seats: 'sınırsız', status: 'active' },
+    { id: 'lic-002', plugin: 'AI Valuation Pro', tenant: 'Kıyı Emlak Grubu', tier: 'pro', key: 'LX-VALU-9C12-2026', issuedAt: '2026-02-08', expiresAt: '2026-08-08', seats: '50', status: 'active' },
+    { id: 'lic-003', plugin: 'iyzico Payments', tenant: 'LandX Demo', tier: 'starter', key: 'LX-IYZI-3E44-2026', issuedAt: '2026-03-22', expiresAt: '2026-09-22', seats: '10', status: 'expiring' },
+    { id: 'lic-004', plugin: 'Bulk Export', tenant: 'Test Kurum 1', tier: 'starter', key: 'LX-BULK-1A2B-2025', issuedAt: '2025-10-04', expiresAt: '2026-04-04', seats: '5', status: 'expired' }
+  ];
+  const REVIEWS = [
+    { id: 'rev-001', plugin: 'TKGM Connector', stars: 5, author: 'A*** Y***', text: 'Müthiş, parsel doğrulama 3sn sürüyor. Form auto-fill harika.', at: '2026-05-12', helpful: 18 },
+    { id: 'rev-002', plugin: 'AI Valuation Pro', stars: 5, author: 'M*** K***', text: 'Emsal değerleme bandı çok isabetli. Satış kapanış hızını artırdı.', at: '2026-05-11', helpful: 14 },
+    { id: 'rev-003', plugin: 'iyzico Payments', stars: 3, author: 'C*** Ö***', text: 'İşe yarıyor ama dökümantasyon yetersiz. 2 saatte kurabildim.', at: '2026-05-08', helpful: 6 },
+    { id: 'rev-004', plugin: 'e-Devlet KYC', stars: 4, author: 'Z*** B***', text: 'Doğrulama hızlı, ama bazen 2. denemede tutuyor.', at: '2026-05-05', helpful: 9 }
+  ];
+  const totalRev = REVENUE.reduce((s, r) => s + r.amount, 0);
+  const totalInstalls = REVENUE.reduce((s, r) => s + r.installs, 0);
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Stat label="Aylık gelir" value={`$${REVENUE[REVENUE.length - 1].amount.toLocaleString('tr-TR')}`} icon={<Database size={20} weight="fill" />} hint="+%17 önceki ay" />
+        <Stat label="6 ay toplam" value={`$${totalRev.toLocaleString('tr-TR')}`} icon={<Database size={20} weight="fill" />} />
+        <Stat label="Aktif lisans" value={LICENSES.filter((l) => l.status === 'active').length} icon={<FileLock size={20} weight="fill" />} hint={`${LICENSES.filter((l) => l.status === 'expiring').length} yakında dolacak`} />
+        <Stat label="Toplam install" value={totalInstalls.toLocaleString('tr-TR')} icon={<Download size={20} weight="fill" />} />
+        <Stat label="Avg rating" value="4.6 ★" icon={<Star size={20} weight="fill" />} hint={`${REVIEWS.length} review`} />
+      </div>
+
+      <Card>
+        <h3 className="font-medium mb-2 inline-flex items-center gap-2"><Database size={14} /> Aylık Gelir Trendi</h3>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 dark:border-slate-800 text-fg-3 text-xs">
+              <th className="text-left py-2">Ay</th>
+              <th className="text-right py-2">Gelir</th>
+              <th className="text-right py-2 hidden sm:table-cell">Install</th>
+              <th className="text-right py-2 hidden md:table-cell">Avg ARPU</th>
+            </tr>
+          </thead>
+          <tbody>
+            {REVENUE.map((r) => (
+              <tr key={r.month} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                <td className="py-2 font-medium">{r.month}</td>
+                <td className="text-right tabular-nums font-medium">${r.amount.toLocaleString('tr-TR')}</td>
+                <td className="text-right tabular-nums hidden sm:table-cell">{r.installs}</td>
+                <td className="text-right tabular-nums hidden md:table-cell text-fg-3">${(r.amount / r.installs).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      <Card>
+        <h3 className="font-medium mb-2 inline-flex items-center gap-2"><FileLock size={14} /> Lisans Anahtarları</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-800 text-fg-3 text-xs">
+                <th className="text-left py-2">Plugin</th>
+                <th className="text-left py-2 hidden sm:table-cell">Müşteri</th>
+                <th className="text-left py-2 hidden md:table-cell">Tier</th>
+                <th className="text-left py-2">Anahtar</th>
+                <th className="text-left py-2 hidden lg:table-cell">Seats</th>
+                <th className="text-left py-2 hidden md:table-cell">Bitiş</th>
+                <th className="text-left py-2">Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LICENSES.map((l) => (
+                <tr key={l.id} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                  <td className="py-2 font-medium text-xs">{l.plugin}</td>
+                  <td className="py-2 hidden sm:table-cell text-xs">{l.tenant}</td>
+                  <td className="py-2 hidden md:table-cell text-xs"><code>{l.tier}</code></td>
+                  <td className="py-2"><code className="text-xs text-brand-700 dark:text-brand-300">{l.key}</code></td>
+                  <td className="py-2 hidden lg:table-cell text-xs">{l.seats}</td>
+                  <td className="py-2 hidden md:table-cell text-xs text-fg-3">{l.expiresAt}</td>
+                  <td className="py-2">
+                    <span className={cls('text-[10px] uppercase font-bold px-1.5 py-0.5 rounded',
+                      l.status === 'active' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' :
+                        l.status === 'expiring' ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300' :
+                          'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'
+                    )}>{l.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex gap-2 mt-3">
+          <Button size="sm" iconLeft={<FileLock size={14} />} onClick={() => toast('success', 'Lisans üretildi', 'LX-NEW-XXXX-2026 - kopyalandı.')}>Yeni lisans üret</Button>
+          <Button size="sm" variant="outline" onClick={() => toast('info', 'CSV indiriliyor', 'licenses-export-2026-05.csv')}>CSV indir</Button>
+        </div>
+      </Card>
+
+      <Card>
+        <h3 className="font-medium mb-2 inline-flex items-center gap-2"><Star size={14} weight="fill" className="text-amber-500" /> Son Yorumlar</h3>
+        <ul className="space-y-3">
+          {REVIEWS.map((r) => (
+            <li key={r.id} className="border-b border-slate-100 dark:border-slate-800 last:border-0 pb-3 last:pb-0">
+              <div className="flex items-center gap-2 mb-1">
+                <code className="text-xs text-brand-700 dark:text-brand-300">{r.plugin}</code>
+                <div className="inline-flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} size={12} weight={i < r.stars ? 'fill' : 'regular'} className={i < r.stars ? 'text-amber-500' : 'text-slate-300 dark:text-slate-700'} />
+                  ))}
+                </div>
+                <span className="text-xs text-fg-3 ml-auto">{r.at}</span>
+              </div>
+              <p className="text-sm text-fg-2">{r.text}</p>
+              <div className="text-[11px] text-fg-3 mt-1">— {r.author} · {r.helpful} kişi faydalı buldu · <button onClick={() => toast('ai', 'AI yanıt taslağı', 'Mock: developer cevap mektubu hazır.')} className="text-brand-600 hover:underline">AI cevap</button></div>
             </li>
           ))}
         </ul>
