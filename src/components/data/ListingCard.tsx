@@ -30,6 +30,7 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
   const compare = useCompare();
   const isFav = !!auth.currentUserId && !!data.favorites.find((f) => f.userId === auth.currentUserId && f.listingId === listing.id);
   const isInCompare = compare.has(listing.id);
+  const compareFull = compare.ids.length >= 4 && !isInCompare;
   const locale = (i18n.language === 'en' ? 'en' : 'tr') as 'tr' | 'en';
 
   function toggleFav(e: React.MouseEvent) {
@@ -42,6 +43,7 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
   function toggleCompare(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    if (compareFull) return;
     isInCompare ? compare.remove(listing.id) : compare.add(listing.id);
   }
 
@@ -75,7 +77,7 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
           <button onClick={toggleFav} className={cls('p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800', isFav && 'text-rose-500')} aria-label={t('actions.favorite')}>
             <Heart weight={isFav ? 'fill' : 'regular'} size={18} />
           </button>
-          <button onClick={toggleCompare} className={cls('p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800', isInCompare && 'text-brand-600')} aria-label={t('actions.compare')}>
+          <button onClick={toggleCompare} disabled={compareFull} title={compareFull ? '4 ilanlık karşılaştırma sınırı doldu' : undefined} className={cls('p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800', isInCompare && 'text-brand-600', compareFull && 'opacity-40 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent')} aria-label={t('actions.compare')}>
             <StackIcon weight={isInCompare ? 'fill' : 'regular'} size={18} />
           </button>
         </div>
@@ -99,7 +101,7 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
           <button onClick={toggleFav} className={cls('p-2 rounded-full bg-white/90 backdrop-blur shadow-sm', isFav ? 'text-rose-500' : 'text-fg-2')} aria-label={t('actions.favorite')}>
             <Heart weight={isFav ? 'fill' : 'regular'} size={16} />
           </button>
-          <button onClick={toggleCompare} className={cls('p-2 rounded-full bg-white/90 backdrop-blur shadow-sm', isInCompare ? 'text-brand-600' : 'text-fg-2')} aria-label={t('actions.compare')}>
+          <button onClick={toggleCompare} disabled={compareFull} title={compareFull ? '4 ilanlık karşılaştırma sınırı doldu' : undefined} className={cls('p-2 rounded-full bg-white/90 backdrop-blur shadow-sm', isInCompare ? 'text-brand-600' : 'text-fg-2', compareFull && 'opacity-40 cursor-not-allowed')} aria-label={t('actions.compare')}>
             <StackIcon weight={isInCompare ? 'fill' : 'regular'} size={16} />
           </button>
         </div>
