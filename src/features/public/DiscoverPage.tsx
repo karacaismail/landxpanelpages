@@ -142,6 +142,24 @@ export default function DiscoverPage() {
         }
       />
 
+      {/* AI Top 3 öneri çubuğu */}
+      {filtered.length > 3 && (
+        <div className="mb-4 rounded-r-3 bg-gradient-to-br from-brand-50 to-transparent dark:from-brand-900/30 border border-brand-200/60 dark:border-brand-700/40 p-3">
+          <div className="flex items-center gap-2 mb-2"><Sparkle size={14} weight="fill" className="text-brand-500" /><span className="text-sm font-medium">AI: Top 3 öneri</span></div>
+          <div className="grid sm:grid-cols-3 gap-2">
+            {[...filtered].sort((a, b) => (b.aiValuation.confidence * 100 - b.aiRiskScore) - (a.aiValuation.confidence * 100 - a.aiRiskScore)).slice(0, 3).map((l) => (
+              <button key={l.id} onClick={() => navigate(`/listings/${l.id}`)} className="text-left p-2 rounded-r-2 hover:bg-white/60 dark:hover:bg-slate-900/50 transition-colors flex gap-2">
+                <img src={l.images[0]?.thumbUrl} alt="" className="w-12 h-12 rounded-r-1 object-cover bg-slate-200 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{l.title}</div>
+                  <div className="text-xs text-fg-3 truncate">{l.city} · risk {l.aiRiskScore}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {filtered.length === 0 ? (
         <EmptyState
           title={t('discover.noResults')}

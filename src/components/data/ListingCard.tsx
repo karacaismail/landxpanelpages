@@ -12,6 +12,11 @@ import { useData } from '@/store/data';
 import { useCompare } from '@/store/compare';
 import type { Listing } from '@/types/domain';
 
+function isNew(publishedAt?: string): boolean {
+  if (!publishedAt) return false;
+  return (Date.now() - new Date(publishedAt).getTime()) < 7 * 86400_000;
+}
+
 interface Props {
   listing: Listing;
   variant?: 'grid' | 'list' | 'compact';
@@ -92,6 +97,9 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
         </div>
         <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
           {!hideStatus && listing.status !== 'live' && <StatusBadge status={listing.status} size="sm" />}
+          {isNew(listing.publishedAt) && (
+            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-accent-500 text-white">YENİ</span>
+          )}
           <RiskBadge size="sm" score={listing.aiRiskScore} reasons={listing.aiRiskReasons} />
         </div>
         {listing.aiTags[0] && (
