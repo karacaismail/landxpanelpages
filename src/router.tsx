@@ -39,6 +39,7 @@ const RegisterPage       = lazy_(() => import('@/features/auth/RegisterPage'));
 const SellPage           = lazy_(() => import('@/features/public/SellPage'));
 const AccountPage        = lazy_(() => import('@/features/public/AccountPage'));
 const FavoritesPage      = lazy_(() => import('@/features/public/FavoritesPage'));
+const FavoriteTrendsPage = lazy_(() => import('@/features/public/FavoriteTrendsPage'));
 const SavedSearchesPage  = lazy_(() => import('@/features/public/SavedSearchesPage'));
 const MessagesPage       = lazy_(() => import('@/features/public/MessagesPage'));
 const OffersPage         = lazy_(() => import('@/features/public/OffersPage'));
@@ -99,6 +100,7 @@ export const router = createHashRouter([
         children: [
           { index: true, element: withSuspense(<AccountPage />) },
           { path: 'favorites', element: withSuspense(<FavoritesPage />) },
+          { path: 'favorites/trends', element: withSuspense(<FavoriteTrendsPage />) },
           { path: 'searches', element: withSuspense(<SavedSearchesPage />) },
           { path: 'messages', element: withSuspense(<MessagesPage />) },
           { path: 'offers', element: withSuspense(<OffersPage />) },
