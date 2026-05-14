@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useData } from '@/store/data';
 import { SectionHeading } from '@/components/data/SectionHeading';
@@ -41,24 +41,47 @@ export default function ReportsPage() {
 
 function Overview() {
   const data = useData();
+  const [period, setPeriod] = useState<7 | 30 | 90>(30);
   const cityBuckets = useMemo(() => {
     const m = new Map<string, number>();
     data.listings.forEach((l) => m.set(l.city, (m.get(l.city) || 0) + 1));
     return Array.from(m.entries()).map(([city, count]) => ({ city, count })).sort((a, b) => b.count - a.count).slice(0, 10);
   }, [data.listings]);
+
+  const sellerLeaderboard = useMemo(() => {
+    const sellers = data.users.filter((u) => u.roles.includes('seller'));
+    return sellers.map((s) => {
+      const own = data.listings.filter((l) => l.ownerId === s.id);
+      const live = own.filter((l) => l.status === 'live').length;
+      const views = own.reduce((sum, l) => sum + l.views, 0);
+      return { name: s.displayName.slice(0, 20), live, views };
+    }).sort((a, b) => b.views - a.views).slice(0, 8);
+  }, [data.users, data.listings]);
+
+  const kycPie = useMemo(() => {
+    const m = new Map<string, number>();
+    data.users.forEach((u) => m.set(u.kycLevel, (m.get(u.kycLevel) || 0) + 1));
+    return Array.from(m.entries()).map(([name, value]) => ({ name, value }));
+  }, [data.users]);
   const imarPie = useMemo(() => {
     const m = new Map<string, number>();
     data.listings.forEach((l) => m.set(l.imarType, (m.get(l.imarType) || 0) + 1));
     return Array.from(m.entries()).map(([imar, value]) => ({ name: imar, value }));
   }, [data.listings]);
-  const days = useMemo(() => Array.from({ length: 30 }, (_, i) => ({
+  const days = useMemo(() => Array.from({ length: period }, (_, i) => ({
     day: i + 1,
     listings: Math.round(6 + Math.sin(i / 4) * 3 + Math.random() * 4),
     offers: Math.round(3 + Math.cos(i / 5) * 2 + Math.random() * 3)
-  })), []);
+  })), [period]);
 
   return (
     <>
+      <div className="flex items-center gap-1.5 mb-3">
+        <span className="text-xs text-fg-3">Dönem:</span>
+        {([7, 30, 90] as const).map((d) => (
+          <button key={d} onClick={() => setPeriod(d)} className={`rounded-full px-3 py-1 text-xs border ${period === d ? 'bg-brand-100 dark:bg-brand-900/40 border-brand-300 dark:border-brand-700 text-brand-800 dark:text-brand-200' : 'border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-fg-2'}`}>Son {d} gün</button>
+        ))}
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <Stat label="Kullanıcı" value={data.users.length} icon={<Users size={20} weight="fill" />} delta={{ value: 12.4 }} />
         <Stat label="İlanlar" value={data.listings.length} icon={<MapPin size={20} weight="fill" />} delta={{ value: 8.2 }} />
@@ -110,6 +133,37 @@ function Overview() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <div className="grid lg:grid-cols-2 gap-4 mt-4">
+        <Card>
+          <h3 className="font-medium mb-2">KYC dağılımı</h3>
+          <div className="h-56">
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={kycPie} dataKey="value" nameKey="name" outerRadius={80} label>
+                  {kycPie.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                </Pie>
+                <Legend />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+        <Card>
+          <h3 className="font-medium mb-2">Top 8 satıcı (görüntülenme)</h3>
+          <div className="h-56">
+            <ResponsiveContainer>
+              <BarChart data={sellerLeaderboard} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,116,139,0.15)" />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={120} />
+                <Tooltip />
+                <Bar dataKey="views" fill="#c97f1d" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
     </>
   );
 }
