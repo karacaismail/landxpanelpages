@@ -87,9 +87,10 @@ export function Sidebar({ variant }: Props) {
               to={to}
               end={end}
               onClick={() => ui.setMobileNav(false)}
+              title={collapsed ? t(`nav.${label}`) : undefined}
               className={({ isActive }) =>
                 cls(
-                  'group flex items-center gap-3 px-3 py-2 rounded-r-2 text-sm font-medium',
+                  'group relative flex items-center gap-3 px-3 py-2 rounded-r-2 text-sm font-medium',
                   'transition-colors min-h-[44px]',
                   isActive
                     ? 'bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-200'
