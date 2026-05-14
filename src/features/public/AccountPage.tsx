@@ -62,10 +62,10 @@ export default function AccountPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-        <Stat label="Favoriler" value={fav} icon={<Heart size={20} weight="fill" />} />
-        <Stat label="Aramalarım" value={saved} icon={<BookmarkSimple size={20} weight="fill" />} />
-        <Stat label="Mesajlar" value={myMessages} icon={<ChatCircle size={20} weight="fill" />} />
-        <Stat label="Teklifler" value={myOffers} icon={<Briefcase size={20} weight="fill" />} />
+        <Stat label="Favoriler" value={fav} icon={<Heart size={20} weight="fill" />} hint={fav > 0 ? 'AI önerisi: benzerlerini öneririm' : 'Kalp ikonuyla kaydedin'} />
+        <Stat label="Aramalarım" value={saved} icon={<BookmarkSimple size={20} weight="fill" />} hint={`${data.savedSearches.filter((s) => s.userId === me.id && s.alertEnabled).length} alarmlı`} />
+        <Stat label="Mesajlar" value={myMessages} icon={<ChatCircle size={20} weight="fill" />} hint="Thread sayısı" />
+        <Stat label="Teklifler" value={myOffers} icon={<Briefcase size={20} weight="fill" />} hint={`${data.offers.filter((o) => o.buyerId === me.id && o.status === 'pending').length} bekliyor`} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
