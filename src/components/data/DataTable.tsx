@@ -1,4 +1,4 @@
-import { useMemo, useState, ReactNode } from 'react';
+import { useMemo, useState, useEffect, ReactNode } from 'react';
 import { cls } from '@/lib/utils/cls';
 import { Button } from '@/components/ui/Button';
 import { CaretDown, CaretUp, MagnifyingGlass, DownloadSimple, Sparkle, Eye } from '@phosphor-icons/react';
@@ -26,17 +26,32 @@ interface Props<T> {
   aiSuggestions?: Array<{ label: string; onRun: () => void }>;
   pageSize?: number;
   empty?: ReactNode;
+  storageKey?: string;
 }
 
-export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, searchPlaceholder, bulkActions, aiSuggestions, pageSize = 20, empty }: Props<T>) {
+export function DataTable<T>({ data, columns, rowKey, onRowClick, searchable, searchPlaceholder, bulkActions, aiSuggestions, pageSize = 20, empty, storageKey }: Props<T>) {
   const { t } = useTranslation();
   const [q, setQ] = useState('');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(() => {
+    if (!storageKey) return new Set();
+    try {
+      const raw = localStorage.getItem(`landx:dt:${storageKey}:hidden`);
+      if (raw) return new Set(JSON.parse(raw) as string[]);
+    } catch { /* noop */ }
+    return new Set();
+  });
   const [colMenuOpen, setColMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      localStorage.setItem(`landx:dt:${storageKey}:hidden`, JSON.stringify(Array.from(hiddenCols)));
+    } catch { /* noop */ }
+  }, [hiddenCols, storageKey]);
   const visibleColumns = columns.filter((c) => !hiddenCols.has(String(c.key)));
 
   const filtered = useMemo(() => {

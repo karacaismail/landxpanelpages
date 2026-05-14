@@ -71,7 +71,7 @@ export default function AuditPage() {
         </div>
       </Card>
 
-      <DataTable data={filtered} columns={columns} rowKey={(r) => r.id} searchable pageSize={25} />
+      <DataTable data={filtered} columns={columns} rowKey={(r) => r.id} searchable pageSize={25} storageKey="admin-audit" />
     </div>
   );
 }

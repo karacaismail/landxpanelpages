@@ -68,6 +68,7 @@ export default function UsersPage() {
         rowKey={(r) => r.id}
         searchable
         searchPlaceholder="Ad, email ile ara..."
+        storageKey="admin-users"
         aiSuggestions={[
           { label: 'KYC bekleyenleri filtrele', onRun: () => alert('AI: 7 kullanıcı KYC bekliyor (mock).') },
           { label: 'Şüpheli aktiviteleri tara', onRun: () => alert('AI: Olağandışı login örüntüsü saptanmadı (mock).') }
