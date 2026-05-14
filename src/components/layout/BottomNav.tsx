@@ -58,13 +58,13 @@ export function BottomNav({ variant = 'public' }: Props) {
               end={to === '/' || to === '/admin' || to === '/seller'}
               className={({ isActive }) =>
                 cls(
-                  'flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-xs',
+                  'flex flex-col items-center justify-center gap-0.5 py-1.5 xxs:py-2 min-h-[52px] xxs:min-h-[56px] text-[10px] xxs:text-xs',
                   isActive ? 'text-brand-600 dark:text-brand-300' : 'text-fg-3'
                 )
               }
             >
-              <Icon size={20} weight="duotone" />
-              <span>{t(`nav.${label}`)}</span>
+              <Icon size={18} className="xxs:!w-5 xxs:!h-5" weight="duotone" />
+              <span className="truncate max-w-full px-1">{t(`nav.${label}`)}</span>
             </NavLink>
           </li>
         ))}

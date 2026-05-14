@@ -69,6 +69,7 @@ export function Sidebar({ variant }: Props) {
         className={cls(
           'fixed lg:sticky top-0 lg:top-14 z-40 lg:z-10',
           'h-dvh lg:h-[calc(100dvh-3.5rem)]',
+          'w-[80vw] max-w-[280px] xs:w-64 lg:w-auto',
           'bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800',
           'transition-transform duration-200',
           open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',

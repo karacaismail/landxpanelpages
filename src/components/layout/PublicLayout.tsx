@@ -15,6 +15,7 @@ import { CompareBar } from './CompareBar';
 import { Breadcrumb } from './Breadcrumb';
 import { LiveRegions } from './LiveRegions';
 import { ToastHost } from './ToastHost';
+import { AdaptiveDebugger } from './AdaptiveDebugger';
 
 export function PublicLayout() {
   const loc = useLocation();
@@ -65,6 +66,7 @@ export function PublicLayout() {
       <CompareBar />
       <LiveRegions />
       <ToastHost />
+      <AdaptiveDebugger />
     </div>
   );
 }

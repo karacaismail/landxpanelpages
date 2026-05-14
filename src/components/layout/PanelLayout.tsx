@@ -17,6 +17,7 @@ import { startDemoRunner } from '@/lib/eca/demo-runner';
 import { Breadcrumb } from './Breadcrumb';
 import { LiveRegions } from './LiveRegions';
 import { ToastHost } from './ToastHost';
+import { AdaptiveDebugger } from './AdaptiveDebugger';
 
 interface Props { variant: 'seller' | 'admin'; }
 
@@ -58,6 +59,7 @@ export function PanelLayout({ variant }: Props) {
       <NotificationsDrawer />
       <LiveRegions />
       <ToastHost />
+      <AdaptiveDebugger />
     </div>
   );
 }
