@@ -240,8 +240,91 @@ export default function RulesPage() {
         </aside>
       </div>
 
+      <SagaOutboxSection />
+
       {newOpen && <NewRuleModal events={EVENTS} onCreate={createRule} onClose={() => setNewOpen(false)} />}
     </div>
+  );
+}
+
+// K04 Hook & Event Bus — Pattern: Outbox & Saga (Saga Orchestration + Transactional Outbox)
+function SagaOutboxSection() {
+  const SAGA_STEPS = [
+    { step: 1, name: 'PaymentInitiated', service: 'payments', status: 'completed', compensation: 'PaymentRefund' },
+    { step: 2, name: 'ListingReserved', service: 'listings', status: 'completed', compensation: 'UnreserveListing' },
+    { step: 3, name: 'OfferAccepted', service: 'offers', status: 'completed', compensation: 'RevokeAcceptance' },
+    { step: 4, name: 'TkgmTransferRecord', service: 'tkgm', status: 'running', compensation: 'CancelTkgmRecord' },
+    { step: 5, name: 'NotifyParties', service: 'notifications', status: 'pending', compensation: '— (idempotent)' }
+  ];
+  const OUTBOX = [
+    { id: 'obx-001', event: 'OfferAccepted', aggregate: 'offer:O-0142', publishedAt: '14:22:18', destinations: ['eca-engine', 'notifications', 'audit'], status: 'delivered' },
+    { id: 'obx-002', event: 'ListingStatusChanged', aggregate: 'listing:L-0024', publishedAt: '14:22:14', destinations: ['eca-engine', 'search-index', 'audit'], status: 'delivered' },
+    { id: 'obx-003', event: 'TkgmFlagChanged', aggregate: 'tkgm:1234/56', publishedAt: '14:22:02', destinations: ['eca-engine', 'audit'], status: 'delivered' },
+    { id: 'obx-004', event: 'UserKycCompleted', aggregate: 'user:u-1842', publishedAt: '14:21:48', destinations: ['notifications', 'badges', 'audit'], status: 'delivered' },
+    { id: 'obx-005', event: 'PriceChanged', aggregate: 'listing:L-0091', publishedAt: '14:21:20', destinations: ['eca-engine', 'subscribers (12)', 'audit'], status: 'retry' },
+    { id: 'obx-006', event: 'OfferReceived', aggregate: 'offer:O-0143', publishedAt: '14:20:42', destinations: ['eca-engine', 'seller-push', 'audit'], status: 'delivered' }
+  ];
+
+  return (
+    <Card className="mt-4">
+      <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
+        <div>
+          <h3 className="font-medium inline-flex items-center gap-2"><Pulse size={14} weight="fill" className="text-amber-500" /> K04 Pattern Library — Saga & Outbox</h3>
+          <p className="text-sm text-fg-3">Distributed transaction patterns: çok-servisli işlemler için kompansasyon zinciri ve transactional outbox.</p>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-3">
+        <div>
+          <h4 className="text-xs uppercase tracking-wider text-fg-3 font-semibold mb-2">Saga Orchestration — "Arsa satış kapanışı"</h4>
+          <ul className="relative space-y-2 pl-8">
+            <div className="absolute left-3 top-2 bottom-2 w-px bg-slate-300 dark:bg-slate-700" />
+            {SAGA_STEPS.map((s) => (
+              <li key={s.step} className="relative">
+                <div className={`absolute -left-8 top-0 w-6 h-6 rounded-full grid place-items-center text-white text-[10px] font-bold ring-2 ring-white dark:ring-slate-900 ${
+                  s.status === 'completed' ? 'bg-emerald-500' : s.status === 'running' ? 'bg-amber-500 animate-pulse' : 'bg-slate-400'
+                }`}>
+                  {s.step}
+                </div>
+                <div className={`p-2 rounded-r-2 border ${
+                  s.status === 'completed' ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-900/10' :
+                  s.status === 'running' ? 'border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-900/10' :
+                  'border-slate-200 dark:border-slate-800'
+                }`}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <code className="text-xs font-medium">{s.name}</code>
+                    <code className="text-[10px] text-fg-3">{s.service}</code>
+                  </div>
+                  <div className="text-[11px] text-fg-3 mt-0.5">Compensate: <code>{s.compensation}</code></div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-fg-3 mt-2">Forward chain: 1→2→3→4→5. Herhangi bir adım fail olursa reverse compensation chain çalışır.</p>
+        </div>
+
+        <div>
+          <h4 className="text-xs uppercase tracking-wider text-fg-3 font-semibold mb-2">Transactional Outbox — son olaylar</h4>
+          <ul className="space-y-1.5">
+            {OUTBOX.map((o) => (
+              <li key={o.id} className="text-xs p-2 rounded-r-2 bg-slate-50 dark:bg-slate-800/50">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <code className="text-fg-3 tabular-nums">{o.publishedAt}</code>
+                  <code className="text-brand-700 dark:text-brand-300 font-medium">{o.event}</code>
+                  <span className={`ml-auto text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
+                    o.status === 'delivered' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' :
+                    'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                  }`}>{o.status}</span>
+                </div>
+                <code className="text-[10px] text-fg-3">{o.aggregate}</code>
+                <div className="text-[10px] text-fg-3 mt-0.5">→ {o.destinations.join(', ')}</div>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-fg-3 mt-2">Outbox table tek aggregate ile aynı transaction'da yazılır; relay job dispatcher event bus'a aktarır. At-least-once delivery, idempotent consumer.</p>
+        </div>
+      </div>
+    </Card>
   );
 }
 
