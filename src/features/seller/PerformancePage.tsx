@@ -71,6 +71,37 @@ export default function PerformancePage() {
           </ResponsiveContainer>
         </div>
       </Card>
+
+      <Card className="mt-4">
+        <h3 className="font-medium mb-2">Saatlik aktivite heatmap (mock)</h3>
+        <p className="text-xs text-fg-3 mb-2">Gün × saat görüntülenme yoğunluğu — en yoğun saat: <strong className="text-fg-1">18-20 arası</strong>, en yoğun gün: <strong className="text-fg-1">Cumartesi</strong></p>
+        <div className="overflow-x-auto">
+          <div className="inline-grid gap-0.5" style={{ gridTemplateColumns: 'auto repeat(24, 14px)' }}>
+            <span />
+            {Array.from({ length: 24 }, (_, h) => (
+              <span key={h} className="text-[8px] text-fg-3 text-center">{h % 6 === 0 ? h : ''}</span>
+            ))}
+            {['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].map((d, di) => (
+              <>
+                <span key={d} className="text-[10px] text-fg-3 pr-1 self-center">{d}</span>
+                {Array.from({ length: 24 }, (_, h) => {
+                  // Cumartesi 18-20 zirvesi
+                  const peak = (di === 5 && h >= 18 && h <= 20) ? 1 : 0;
+                  const work = (h >= 9 && h <= 22) ? 0.4 : 0.1;
+                  const wkndBoost = (di >= 5) ? 0.2 : 0;
+                  const eveBoost = (h >= 17 && h <= 21) ? 0.3 : 0;
+                  const v = Math.min(1, peak + work + wkndBoost + eveBoost + (Math.random() * 0.1));
+                  const op = Math.round(v * 100);
+                  return (
+                    <span key={`${d}-${h}`} className="w-3.5 h-3.5 rounded-sm" style={{ backgroundColor: `rgba(14,124,97,${v.toFixed(2)})` }} title={`${d} ${h}:00 — yoğunluk %${op}`} />
+                  );
+                })}
+              </>
+            ))}
+          </div>
+        </div>
+        <div className="text-xs text-fg-3 mt-2">İpucu: cumartesi 18:00 sonrası yayın yapılan ilanlar +%32 görüntülenme alıyor.</div>
+      </Card>
     </div>
   );
 }
