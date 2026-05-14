@@ -80,6 +80,10 @@ const ApiExplorerPage    = lazy_(() => import('@/features/admin/ApiExplorerPage'
 const DocTypeStudioPage  = lazy_(() => import('@/features/admin/DocTypeStudioPage'));
 const WorkflowDesignerPage = lazy_(() => import('@/features/admin/WorkflowDesignerPage'));
 const FeatureFlagsPage   = lazy_(() => import('@/features/admin/FeatureFlagsPage'));
+const McpServerPage      = lazy_(() => import('@/features/admin/McpServerPage'));
+const AgentOrchestrationPage = lazy_(() => import('@/features/admin/AgentOrchestrationPage'));
+const PiiGovernancePage  = lazy_(() => import('@/features/admin/PiiGovernancePage'));
+const ObservabilityPage  = lazy_(() => import('@/features/admin/ObservabilityPage'));
 
 const NotFoundPage       = lazy_(() => import('@/features/public/NotFoundPage'));
 
@@ -163,7 +167,11 @@ export const router = createHashRouter([
       { path: 'api-explorer', element: withSuspense(<ApiExplorerPage />) },
       { path: 'doctype-studio', element: withSuspense(<DocTypeStudioPage />) },
       { path: 'workflow-designer', element: withSuspense(<WorkflowDesignerPage />) },
-      { path: 'feature-flags', element: withSuspense(<FeatureFlagsPage />) }
+      { path: 'feature-flags', element: withSuspense(<FeatureFlagsPage />) },
+      { path: 'mcp-server', element: withSuspense(<McpServerPage />) },
+      { path: 'orchestration', element: withSuspense(<AgentOrchestrationPage />) },
+      { path: 'pii-governance', element: withSuspense(<PiiGovernancePage />) },
+      { path: 'observability', element: withSuspense(<ObservabilityPage />) }
     ]
   },
   { path: '*', element: <Navigate to="/" replace /> }
