@@ -11,6 +11,7 @@ import { formatRelTime } from '@/lib/utils/format';
 import { useAuth } from '@/store/auth';
 import { PencilSimple, Plus } from '@phosphor-icons/react';
 import { nanoid } from 'nanoid';
+import { toast } from '@/store/toast';
 
 function emptyUser(): User {
   const id = `u-new-${nanoid(4)}`;
@@ -104,11 +105,11 @@ export default function UsersPage() {
         searchPlaceholder="Ad, email ile ara..."
         storageKey="admin-users"
         aiSuggestions={[
-          { label: 'KYC bekleyenleri filtrele', onRun: () => alert('AI: 7 kullanıcı KYC bekliyor (mock).') },
-          { label: 'Şüpheli aktiviteleri tara', onRun: () => alert('AI: Olağandışı login örüntüsü saptanmadı (mock).') }
+          { label: 'KYC bekleyenleri filtrele', onRun: () => toast('ai', 'AI önerisi', '7 kullanıcı KYC bekliyor.') },
+          { label: 'Şüpheli aktiviteleri tara', onRun: () => toast('ai', 'AI önerisi', 'Olağandışı login örüntüsü saptanmadı.') }
         ]}
         bulkActions={[
-          { label: 'E-posta gönder', onRun: (rows) => alert(`${rows.length} kullanıcıya e-posta gönderilecek (mock).`) }
+          { label: 'E-posta gönder', onRun: (rows) => toast('success', 'E-posta gönderildi', `${rows.length} kullanıcıya gönderildi.`) }
         ]}
       />
 

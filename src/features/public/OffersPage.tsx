@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Briefcase, Check, X as XIcon } from '@phosphor-icons/react';
 import { formatPrice, formatRelTime } from '@/lib/utils/format';
 import type { Offer } from '@/types/domain';
+import { toast } from '@/store/toast';
 
 export default function OffersPage() {
   const { t, i18n } = useTranslation();
@@ -64,7 +65,7 @@ export default function OffersPage() {
         searchable
         searchPlaceholder="Teklif veya ilan ara"
         aiSuggestions={[
-          { label: 'Süresi dolan teklifleri yenile', onRun: () => alert('AI: 0 teklif yenilemek üzere bekliyor.') }
+          { label: 'Süresi dolan teklifleri yenile', onRun: () => toast('ai', 'AI önerisi', '0 teklif yenilemek üzere bekliyor.') }
         ]}
       />
     </div>

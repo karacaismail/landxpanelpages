@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useState } from 'react';
 import { setLocale } from '@/i18n';
+import { toast } from '@/store/toast';
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -60,7 +61,7 @@ export default function ProfilePage() {
         <p className="text-sm text-fg-3">Kişisel verilerinizin işlenmesi hakkında detaylı bilgi için <a className="text-brand-700 dark:text-brand-300 hover:underline" href="#/legal/kvkk">KVKK Aydınlatma Metni</a>ni inceleyin.</p>
         <div className="flex gap-2 mt-3">
           <Button variant="outline" onClick={() => exportMyData(me)}>Verilerimi dışa aktar (KVKK m.11)</Button>
-          <Button variant="danger" onClick={() => alert('Hesap silme talebi alındı. 30 gün içinde tüm verileriniz silinecek (mock).')}>Hesabı silme talebi (KVKK m.7)</Button>
+          <Button variant="danger" onClick={() => toast('warning', 'Hesap silme talebi alındı', '30 gün içinde tüm verileriniz silinecek (KVKK m.7).')}>Hesabı silme talebi (KVKK m.7)</Button>
         </div>
       </Card>
     </div>

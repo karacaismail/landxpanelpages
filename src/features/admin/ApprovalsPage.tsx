@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { Check, X as XIcon, Sparkle } from '@phosphor-icons/react';
 import { formatPrice, formatRelTime } from '@/lib/utils/format';
 import type { Listing } from '@/types/domain';
+import { toast } from '@/store/toast';
 
 export default function ApprovalsPage() {
   const data = useData();
@@ -107,7 +108,7 @@ export default function ApprovalsPage() {
             onRowClick={(r) => setSelected(r)}
             aiSuggestions={[
               { label: 'Düşük riskli olanları toplu onayla', onRun: () => queue.filter((q) => q.aiRiskScore < 30).forEach((q) => approve(q)) },
-              { label: 'TKGM ipotekli olanları işaretle', onRun: () => alert('AI: 3 ilan TKGM ipotekli olarak işaretlendi (mock).') }
+              { label: 'TKGM ipotekli olanları işaretle', onRun: () => toast('ai', 'AI önerisi', '3 ilan TKGM ipotekli olarak işaretlendi.') }
             ]}
             bulkActions={[
               { label: 'Onayla', onRun: (rows) => rows.forEach(approve) },

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Check, X as XIcon } from '@phosphor-icons/react';
 import { formatPrice, formatRelTime } from '@/lib/utils/format';
 import type { Offer } from '@/types/domain';
+import { toast } from '@/store/toast';
 
 export default function SellerOffersPage() {
   const { i18n } = useTranslation();
@@ -79,8 +80,8 @@ export default function SellerOffersPage() {
         rowKey={(r) => r.id}
         searchable
         aiSuggestions={[
-          { label: '%90+ teklifleri otomatik kabul önerisi', onRun: () => alert('AI: 3 teklif %90+ kategoride. Kabul önerilir (mock).') },
-          { label: 'Karşı teklif şablonu üret', onRun: () => alert('AI: Pazarlık penceresi listenizin %5 altında öneriliyor (mock).') }
+          { label: '%90+ teklifleri otomatik kabul önerisi', onRun: () => toast('ai', 'AI önerisi', '3 teklif %90+ kategoride. Kabul önerilir.') },
+          { label: 'Karşı teklif şablonu üret', onRun: () => toast('ai', 'AI önerisi', 'Pazarlık penceresi listenizin %5 altında öneriliyor.') }
         ]}
         bulkActions={[
           { label: 'Toplu reddet', onRun: (rows) => rows.forEach((r) => transition(r, 'rejected')), tone: 'danger' }

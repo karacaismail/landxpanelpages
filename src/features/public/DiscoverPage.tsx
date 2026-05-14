@@ -15,6 +15,7 @@ import { parseQuery } from '@/lib/ai/nl-parser';
 import type { Listing, SavedSearchFilters } from '@/types/domain';
 import { nanoid } from 'nanoid';
 import { cls } from '@/lib/utils/cls';
+import { toast } from '@/store/toast';
 
 type Sort = 'newest' | 'priceAsc' | 'priceDesc' | 'areaDesc' | 'riskAsc';
 type View = 'grid' | 'list' | 'map';
@@ -92,7 +93,7 @@ export default function DiscoverPage() {
     const favIds = data.favorites.filter((f) => f.userId === auth.currentUserId).map((f) => f.listingId);
     const favs = data.listings.filter((l) => favIds.includes(l.id));
     if (favs.length === 0) {
-      alert('Henüz favoriniz yok. Birkaç ilanı favorileyince size benzer ilanlar önerebilirim.');
+      toast('info', 'Favori yok', 'Birkaç ilanı favorileyince size benzer ilanlar önerebilirim.');
       return;
     }
     // En yaygın şehir, imar, tapu

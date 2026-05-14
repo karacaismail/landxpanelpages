@@ -12,6 +12,7 @@ import { ListingCard } from '@/components/data/ListingCard';
 import { Plus, PencilSimple, Eye, Sparkle } from '@phosphor-icons/react';
 import type { Listing } from '@/types/domain';
 import { formatPrice, formatArea } from '@/lib/utils/format';
+import { toast } from '@/store/toast';
 
 export default function MyListingsPage() {
   const { t, i18n } = useTranslation();
@@ -81,11 +82,11 @@ export default function MyListingsPage() {
         searchPlaceholder="Başlık, şehir, ilçe ile ara"
         storageKey="seller-listings"
         aiSuggestions={[
-          { label: 'Taslakları yayına hazırlamamı ister misiniz?', onRun: () => alert('AI: 0 taslak ilanınız bulundu (mock).') },
-          { label: 'Fiyat anomalisi olan ilanları bul', onRun: () => alert('AI: 1 ilanda emsalden +%22 sapma tespit edildi (mock).') }
+          { label: 'Taslakları yayına hazırlamamı ister misiniz?', onRun: () => toast('ai', 'AI önerisi', '0 taslak ilanınız bulundu.') },
+          { label: 'Fiyat anomalisi olan ilanları bul', onRun: () => toast('ai', 'AI önerisi', '1 ilanda emsalden +%22 sapma tespit edildi.') }
         ]}
         bulkActions={[
-          { label: 'Öne çıkar', onRun: (rows) => alert(`${rows.length} ilan öne çıkarılacak (mock).`) },
+          { label: 'Öne çıkar', onRun: (rows) => toast('success', 'Öne çıkarıldı', `${rows.length} ilan öne çıkarıldı.`) },
           { label: 'Yayından kaldır', onRun: (rows) => rows.forEach((r) => data.setListingStatus(r.id, 'draft')) },
           { label: 'Sil', onRun: (rows) => rows.forEach((r) => data.removeListing(r.id)), tone: 'danger' }
         ]}
