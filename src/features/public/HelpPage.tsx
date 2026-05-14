@@ -67,6 +67,36 @@ export default function HelpPage() {
       </Card>
 
       <Card>
+        <h3 className="font-medium mb-3">AI dokunuşları nerede?</h3>
+        <ul className="text-sm space-y-1.5 text-fg-2">
+          <li>• <strong>Cmd+K</strong> her sayfada komut + niyet ortak alanı</li>
+          <li>• <strong>Cmd+J</strong> AI Asistan Drawer (rol+sayfa bağlam aware)</li>
+          <li>• Discover: AI Top 3 öneri çubuğu (güven × düşük risk)</li>
+          <li>• İlan detay: <em>AI'a bu ilanı sor</em>, AI Değerleme, Risk açıklaması, 12 ay fiyat trendi</li>
+          <li>• İlan wizard: niyet parse, AI başlık, AI fiyat, AI açıklama, TKGM doğrulama</li>
+          <li>• Admin Approvals: AI red mektubu taslağı (ilanın özelliğine göre)</li>
+          <li>• Admin Rules: 24 ECA kuralı, demo runner her 45sn'de mock olay üretir</li>
+          <li>• Admin AI Usage: token/maliyet/latency/halüsinasyon dashboard'u</li>
+          <li>• Bildirimler: AI gruplama (3+ benzeri toplanır)</li>
+          <li>• Profile: AI hafıza (kullanıcı tercihlerini hatırlar)</li>
+        </ul>
+      </Card>
+
+      <Card>
+        <h3 className="font-medium mb-3">Demo verisi (deterministik seed=42)</h3>
+        <ul className="text-sm grid sm:grid-cols-2 gap-x-6 gap-y-1 text-fg-2">
+          <li>• 60 kullanıcı (alıcı, satıcı, admin)</li>
+          <li>• 220 ilan (81 il dağılımı)</li>
+          <li>• 120 teklif · 40 thread · 300 mesaj</li>
+          <li>• 35 randevu · 80 favori · 22 kayıtlı arama</li>
+          <li>• 24 ECA kuralı (15 etkin)</li>
+          <li>• 140 bildirim · 500 audit · 60 TKGM sorgusu</li>
+          <li>• 33 modül (Excel master) × 1398 alan</li>
+        </ul>
+        <p className="text-xs text-fg-3 mt-3">Tüm veriler tarayıcıda Faker.tr ile üretiliyor. Sayfa yenilenince sıfırlanır.</p>
+      </Card>
+
+      <Card>
         <h3 className="font-medium mb-3">Tüm Rotalar</h3>
         <div className="grid md:grid-cols-3 gap-6 text-sm">
           <RouteGroup title={`Genel (${GENERAL.length})`} routes={GENERAL} />
