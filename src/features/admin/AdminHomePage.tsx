@@ -54,9 +54,15 @@ export default function AdminHomePage() {
           { to: '/admin/approvals', label: 'Onaylar', desc: `${stats.pending} bekleyen`, Icon: CheckSquare },
           { to: '/admin/users', label: 'Kullanıcılar', desc: `${stats.users} kayıt`, Icon: Users },
           { to: '/admin/rules', label: 'ECA Kuralları', desc: `${stats.rules} aktif`, Icon: FlowArrow },
+          { to: '/admin/agent-tasks', label: 'Agent Görevleri', desc: 'A09 HITL akışları', Icon: Sparkle },
           { to: '/admin/audit', label: 'Denetim İzi', desc: 'Hash-chain log', Icon: ShieldCheck },
           { to: '/admin/tkgm', label: 'TKGM', desc: 'Entegrasyon paneli', Icon: Buildings },
-          { to: '/admin/modules', label: 'Modüller', desc: '33 modül', Icon: Sparkle }
+          { to: '/admin/modules', label: 'Modüller', desc: '33 modül · 1398 alan', Icon: Sparkle },
+          { to: '/admin/tenant', label: 'Tenant', desc: 'Multi-tenant yönetim', Icon: Buildings },
+          { to: '/admin/compliance', label: 'Uyumluluk', desc: 'KVKK/GDPR/SOC2', Icon: ShieldCheck },
+          { to: '/admin/plugins', label: 'Eklentiler', desc: 'Marketplace + güvenlik', Icon: Sparkle },
+          { to: '/admin/reports/ai-usage', label: 'AI Kullanım', desc: 'Token + maliyet', Icon: Sparkle },
+          { to: '/admin/reports/health', label: 'SLO & Sağlık', desc: 'Uptime + MTTR', Icon: Sparkle }
         ].map((it) => (
           <Link key={it.to} to={it.to}>
             <Card interactive className="flex items-center gap-3">
