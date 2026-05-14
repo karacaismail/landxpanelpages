@@ -41,7 +41,10 @@ export default function ComparePage() {
   return (
     <div className="max-w-[1600px] mx-auto px-3 lg:px-6 py-4 lg:py-6">
       <SectionHeading title={t('nav.compare')} description={`${items.length} ilan karşılaştırılıyor`} actions={
-        <Button variant="ghost" onClick={() => compare.clear()}>Tümünü temizle</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => window.print()}>Yazdır / PDF</Button>
+          <Button variant="ghost" onClick={() => compare.clear()}>Tümünü temizle</Button>
+        </div>
       } />
 
       {/* AI fark özeti */}

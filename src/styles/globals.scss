@@ -63,3 +63,17 @@ input, textarea, select {
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 .safe-x { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+// Print stylesheet — Compare ve ListingDetail için temiz çıktı
+@media print {
+  header, footer, nav, aside,
+  .lg\:hidden, [role="dialog"], [aria-label="Bildirimler"],
+  [aria-label*="paleti"], [aria-label*="Drawer"] {
+    display: none !important;
+  }
+  main { padding: 0 !important; }
+  body { background: white !important; color: black !important; }
+  a { color: black !important; text-decoration: none; }
+  .rounded-r-3, .rounded-r-2, .rounded-r-4 { border-radius: 0 !important; }
+  img { max-width: 100% !important; }
+}
