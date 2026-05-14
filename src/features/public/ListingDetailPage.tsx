@@ -16,6 +16,8 @@ import { ListingCard } from '@/components/data/ListingCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LandMap } from '@/components/map/LandMap';
 import { PriceTrendChart } from '@/components/data/PriceTrendChart';
+import { useAi } from '@/store/ai';
+import { useUi } from '@/store/ui';
 import { IMAR_LABELS, TKGM_LABELS, TAPU_LABELS } from '@/data/fixtures/imar-types';
 import { formatPrice, formatArea, formatRelTime, compactNumber } from '@/lib/utils/format';
 import { nanoid } from 'nanoid';
@@ -28,6 +30,8 @@ export default function ListingDetailPage() {
   const data = useData();
   const auth = useAuth();
   const compare = useCompare();
+  const ai = useAi();
+  const ui = useUi();
   const locale = (i18n.language === 'en' ? 'en' : 'tr') as 'tr' | 'en';
 
   const listing = data.listings.find((l) => l.id === id);
@@ -173,9 +177,26 @@ export default function ListingDetailPage() {
     window.open(targets[network], '_blank', 'noopener');
   }
 
+  function askAi() {
+    if (!listing) return;
+    ai.appendUser(`"${listing.title}" ilanı hakkında ne düşünüyorsun? ${listing.city}/${listing.district}, ${listing.area} m², ${listing.price.toLocaleString('tr-TR')} ₺. TKGM: ${listing.tkgmStatus}, tapu: ${listing.tapuType}, imar: ${listing.imarType}.`);
+    ai.setThinking(true);
+    setTimeout(() => {
+      ai.setThinking(false);
+      const verdict = listing.aiRiskScore < 30 ? 'Genel olarak düşük risk' : listing.aiRiskScore < 60 ? 'Orta risk, dikkatli ilerlemek gerek' : 'Yüksek risk, detaylı inceleme önerilir';
+      const valDelta = ((listing.price - listing.aiValuation.mid) / listing.aiValuation.mid * 100);
+      const priceMsg = Math.abs(valDelta) < 5 ? 'AI değerleme bandında' : valDelta > 0 ? `bant üstünde (+%${valDelta.toFixed(1)})` : `bant altında (%${valDelta.toFixed(1)})`;
+      ai.appendAssistant(`Bu ilanı incelemem:\n\n• Konum: ${listing.city}/${listing.district} — ${listing.aiValuation.confidence > 0.8 ? 'değerleme güveni yüksek' : 'değerleme güveni orta'}\n• Fiyat: ${priceMsg}\n• Risk skoru: ${listing.aiRiskScore}/100 — ${verdict}\n• Tapu: ${listing.tapuType === 'mustakil' ? 'müstakil ✓' : listing.tapuType}\n• TKGM: ${listing.tkgmStatus}${listing.tkgmStatus === 'temiz' ? ' ✓' : ' — kontrol önerilir'}\n• Öne çıkan: ${listing.aiTags.slice(0, 3).join(', ')}\n\nNet önerim: ${listing.aiRiskScore < 30 && listing.tkgmStatus === 'temiz' ? 'görme randevusu + ortalama %5-8 pazarlık.' : 'önce tapu belgelerini iste, görme randevusunu sonra al.'}`);
+    }, 1200);
+    ui.setAssistant(true);
+  }
+
   return (
     <div className="max-w-[1600px] mx-auto px-3 lg:px-6 py-4 lg:py-6">
-      <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-fg-3 hover:text-fg-1 text-sm mb-3"><ArrowLeft size={16} /> Geri</button>
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-fg-3 hover:text-fg-1 text-sm"><ArrowLeft size={16} /> Geri</button>
+        <Button size="sm" variant="outline" iconLeft={<Sparkle size={14} weight="fill" />} onClick={askAi}>AI'a bu ilanı sor</Button>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Sol: galeri + içerik */}
