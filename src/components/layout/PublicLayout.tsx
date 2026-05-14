@@ -1,4 +1,8 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from '@/store/auth';
+import { useData } from '@/store/data';
+import { startSavedSearchRunner } from '@/lib/saved-search-runner';
 import { TopBar } from './TopBar';
 import { Footer } from './Footer';
 import { CommandPalette } from './CommandPalette';
@@ -14,6 +18,20 @@ import { ToastHost } from './ToastHost';
 
 export function PublicLayout() {
   const loc = useLocation();
+  const auth = useAuth();
+  const data = useData();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!auth.currentUserId) return;
+    return startSavedSearchRunner({
+      userId: auth.currentUserId,
+      searches: data.savedSearches,
+      navigate: (h) => navigate(h)
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.currentUserId]);
+
   return (
     <div className="min-h-dvh flex flex-col bg-bg-2">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-brand-500 focus:text-white focus:px-3 focus:py-2 focus:rounded-r-2">Ana içeriğe atla</a>
