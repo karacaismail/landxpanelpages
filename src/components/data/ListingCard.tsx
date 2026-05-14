@@ -50,7 +50,7 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
   if (variant === 'list') {
     return (
       <Link to={`/listings/${listing.id}`} className="group flex gap-3 lg:gap-4 p-3 rounded-r-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow">
-        <img src={listing.images[0]?.thumbUrl} alt="" loading="lazy" className="w-28 h-28 lg:w-40 lg:h-32 object-cover rounded-r-2 bg-slate-200" />
+        <img src={listing.images[0]?.thumbUrl} alt="" loading="lazy" decoding="async" width={160} height={128} className="w-28 h-28 lg:w-40 lg:h-32 object-cover rounded-r-2 bg-slate-200" />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-medium text-fg-1 line-clamp-2 group-hover:text-brand-600">{listing.title}</h3>
@@ -93,6 +93,8 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
           alt=""
           loading="lazy"
           decoding="async"
+          width={640}
+          height={480}
           className="w-full aspect-[4/3] object-cover bg-slate-200 dark:bg-slate-800 transition-opacity duration-300 [&:not([data-loaded])]:opacity-0 [&[data-loaded]]:opacity-100"
           onLoad={(e) => e.currentTarget.setAttribute('data-loaded', '')}
           ref={(el) => { if (el?.complete) el.setAttribute('data-loaded', ''); }}

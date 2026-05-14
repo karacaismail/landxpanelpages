@@ -32,6 +32,17 @@ export function PublicLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.currentUserId]);
 
+  // Idle-time prefetch of likely-next routes — reduces nav latency
+  useEffect(() => {
+    const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+    const run = () => {
+      void import('@/features/public/DiscoverPage');
+      void import('@/features/public/ListingDetailPage');
+    };
+    if (ric) ric(run, { timeout: 3000 });
+    else setTimeout(run, 1500);
+  }, []);
+
   return (
     <div className="min-h-dvh flex flex-col bg-bg-2">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-brand-500 focus:text-white focus:px-3 focus:py-2 focus:rounded-r-2">Ana içeriğe atla</a>
