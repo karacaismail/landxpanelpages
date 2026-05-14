@@ -86,7 +86,15 @@ export function ListingCard({ listing, variant = 'grid', hideStatus }: Props) {
   return (
     <Link to={`/listings/${listing.id}`} className="group block rounded-r-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5">
       <div className="relative">
-        <img src={listing.images[0]?.thumbUrl} alt="" loading="lazy" className="w-full aspect-[4/3] object-cover bg-slate-200" />
+        <img
+          src={listing.images[0]?.thumbUrl}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="w-full aspect-[4/3] object-cover bg-slate-200 dark:bg-slate-800 transition-opacity duration-300 [&:not([data-loaded])]:opacity-0 [&[data-loaded]]:opacity-100"
+          onLoad={(e) => e.currentTarget.setAttribute('data-loaded', '')}
+          ref={(el) => { if (el?.complete) el.setAttribute('data-loaded', ''); }}
+        />
         <div className="absolute top-2 right-2 flex flex-col gap-1.5">
           <button onClick={toggleFav} className={cls('p-2 rounded-full bg-white/90 backdrop-blur shadow-sm', isFav ? 'text-rose-500' : 'text-fg-2')} aria-label={t('actions.favorite')}>
             <Heart weight={isFav ? 'fill' : 'regular'} size={16} />

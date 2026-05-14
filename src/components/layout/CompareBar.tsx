@@ -24,6 +24,9 @@ export function CompareBar() {
           ))}
         </div>
         <span className="text-xs text-white/60 hidden sm:inline">{compare.ids.length}/4</span>
+        <button onClick={() => compare.clear()} aria-label="Tümünü temizle" className="p-1.5 rounded-full text-white/70 hover:bg-white/10 hover:text-white text-xs" title="Tümünü temizle">
+          <X size={14} />
+        </button>
         <Button size="sm" variant="primary" iconRight={<ArrowRight size={14} />} onClick={() => navigate('/compare')}>Karşılaştır</Button>
       </div>
     </div>
