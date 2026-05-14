@@ -18,6 +18,7 @@ import { formatPrice } from '@/lib/utils/format';
 import { nanoid } from 'nanoid';
 import type { Listing, ImarType, TapuType, TkgmStatus } from '@/types/domain';
 import { AiBadge } from '@/components/ui/AiBadge';
+import { ImageUploader } from '@/components/forms/ImageUploader';
 
 interface Draft {
   intent: string;
@@ -305,12 +306,15 @@ export default function ListingWizardPage() {
       {step === 2 && (
         <Card className="space-y-3">
           <h3 className="font-medium inline-flex items-center gap-2"><Image size={18} /> Görseller</h3>
-          <p className="text-sm text-fg-3">Demo aşaması: deterministik picsum URL'leri otomatik atanır. Gerçek üründe drag-drop + AI sıralama olur.</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {Array.from({ length: 4 }, (_, i) => `https://picsum.photos/seed/landx-new-${i}/400/300`).map((url, i) => (
-              <img key={i} src={url} alt="" className="aspect-[4/3] object-cover rounded-r-2 bg-slate-200" />
-            ))}
-          </div>
+          <ImageUploader
+            urls={draft.images}
+            onChange={(urls) => setDraft((d) => ({ ...d, images: urls }))}
+          />
+          <Button size="sm" variant="outline" iconLeft={<Sparkle size={14} weight="fill" />} onClick={() => {
+            const seed = (draft.city || 'plot').toLowerCase().replace(/\s+/g, '-');
+            const generated = Array.from({ length: 6 }, (_, i) => `https://picsum.photos/seed/landx-${seed}-${i}-${Math.random().toString(36).slice(2,6)}/1200/800`);
+            setDraft((d) => ({ ...d, images: [...d.images, ...generated] }));
+          }}>AI ile 6 örnek görsel üret</Button>
         </Card>
       )}
 
